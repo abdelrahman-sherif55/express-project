@@ -6,6 +6,8 @@ export interface Users extends Document {
     name: string;
     active: boolean;
     role: UsersRole;
+    googleId: string;
+    hasPassword: boolean;
     passwordChangedAt: Date | number;
     passwordResetCode: string | undefined;
     passwordResetCodeExpires: Date | number | undefined;

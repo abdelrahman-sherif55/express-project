@@ -41,9 +41,7 @@ app.use(i18n.init);
 DBConnection();
 mountRoutes(app);
 
-server = app.listen(port, () => {
-    console.log(`app is listen on port ${port}`);
-});
+server = app.listen(port, () => console.log(`app is listen on port ${port}`));
 
 process.on('unhandledRejection', (err: Error) => {
     console.error(`unhandledRejection ${err.name} | ${err.message}`);

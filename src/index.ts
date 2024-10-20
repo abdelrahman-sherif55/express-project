@@ -1,12 +1,13 @@
-import * as all from './global/interfaces'
+import './global/interfaces';
 import {Application, NextFunction, Request, Response} from "express";
 import csurf from "csurf";
 import globalErrors from "./global/middlewares/globalErrors.middleware";
 import verifyPaymob from "./global/middlewares/verifyPaymob.middleware";
 import ApiErrors from "./global/utils/apiErrors";
 import examplesRoute from "./examples/examples.Route";
-import usersRoute from "./users/users.Route";
+import googleRoute from "./google/google.Route";
 import authRoute from "./auth/auth.Route";
+import usersRoute from "./users/users.Route";
 
 const mountRoutes = (app: Application): void => {
     app.post('/api/paymob-webhook', verifyPaymob, (req: Request, res: Response, next: NextFunction) => {
@@ -30,6 +31,7 @@ const mountRoutes = (app: Application): void => {
         next();
     });
     app.use('/api/v1/examples', examplesRoute);
+    app.use('/auth/google', googleRoute);
     app.use('/api/v1/users', usersRoute);
     app.use('/api/v1/auth', authRoute);
     app.all('*', (req: Request, res: Response, next: NextFunction) => {

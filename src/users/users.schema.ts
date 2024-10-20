@@ -8,6 +8,8 @@ const usersSchema: mongoose.Schema = new mongoose.Schema<Users>({
     name: {type: String, required: true, trim: true, minlength: 2, maxlength: 50},
     active: {type: Boolean, default: true},
     role: {type: String, enum: ['admin', 'user'], default: 'user'},
+    hasPassword: {type: Boolean, default: true},
+    googleId: {type: String},
     image: String,
     passwordChangedAt: Date,
     passwordResetCode: String,
@@ -15,25 +17,13 @@ const usersSchema: mongoose.Schema = new mongoose.Schema<Users>({
     passwordResetCodeVerify: Boolean
 }, {timestamps: true});
 
-const imageUrl = (document: Users): void => {
-    if (document.image) {
-        document.image = `${process.env.BASE_URL}/images/users/${document.image}`;
-    }
-};
-
-usersSchema.post('init', (document: Users): void => {
-    imageUrl(document);
-}).post('save', (document: Users): void => {
-    imageUrl(document);
-});
-
 usersSchema.pre<Users>('save', async function (next: mongoose.CallbackWithoutResultAndOptionalError): Promise<void> {
     if (!this.isModified('password')) return next();
     this.password = await bcrypt.hash(this.password, 13);
     next();
 });
 
-// usersSchema.pre<Examples>(/^find/, function (next) {
+// usersSchema.pre<Users>(/^find/, function (next) {
 //     this.populate({ path: 'category', select: 'name_en name_ar' });
 //     next();
 // });

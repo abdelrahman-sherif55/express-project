@@ -28,22 +28,16 @@ class ExamplesValidation {
     deleteUploadedImage = (image: string): void => {
         const imagePath: string = `uploads/images/examples/${image}`;
         fs.unlink(imagePath, (err): void => {
-            if (err) {
-                console.error(`Error deleting image ${image}: ${err}`);
-            } else {
-                console.log(`Successfully deleted image ${image}`);
-            }
+            if (err) console.error(`Error deleting image ${image}: ${err}`);
+            else console.log(`Successfully deleted image ${image}`);
         });
     };
     deleteUploadedImages = (images: string[]): void => {
         images.forEach((imageName: string): void => {
             const imagePath: string = `uploads/images/examples/${imageName}`;
             fs.unlink(imagePath, (err): void => {
-                if (err) {
-                    console.error(`Error deleting image ${imageName}: ${err}`);
-                } else {
-                    console.log(`Successfully deleted image ${imageName}`);
-                }
+                if (err) console.error(`Error deleting image ${imageName}: ${err}`);
+                else console.log(`Successfully deleted image ${imageName}`);
             });
         });
     };

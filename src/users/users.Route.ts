@@ -8,9 +8,11 @@ const usersRoute: Router = Router();
 usersRoute.use(authService.protectRoutes, authService.checkActive);
 usersRoute.route('/me')
     .get(usersService.setUserId, usersService.getUser)
-    .put(usersService.setUserId, usersService.uploadUserImage, usersService.resizeUserImage, usersValidation.updateLoggedUser, usersService.updateLoggedUser)
+    .put(usersService.setUserId, usersService.uploadUserImage, usersService.resizeUserImage, usersValidation.updateProfile, usersService.updateProfile)
     .delete(authService.allowedTo('user'), usersService.setUserId, usersValidation.deleteUser, usersService.deleteUser)
-usersRoute.put('/changeMyPassword', usersValidation.changeLoggedUserPassword, usersService.changeLoggedUserPassword);
+
+usersRoute.put('/createPassword', usersValidation.createPassword, usersService.createPassword);
+usersRoute.put('/changePassword', usersValidation.changePassword, usersService.changePassword);
 
 usersRoute.use(authService.allowedTo('manager'));
 usersRoute.route('/')

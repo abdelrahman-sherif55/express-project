@@ -9,7 +9,7 @@ class Features {
 
     filter() {
         const queryStringObj: QueryString = {...this.queryString};
-        const executedFields: string[] = ['page', 'limit', 'sort', 'fields', 'search'];
+        const executedFields: string[] = ['page', 'limit', 'sort', 'fields', 'search', 'lang'];
         executedFields.forEach((field: string): void => {
             delete queryStringObj[field]
         });

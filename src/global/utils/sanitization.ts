@@ -6,6 +6,8 @@ class Sanitization {
             email: user?.email,
             role: user?.role,
             active: user?.active,
+            hasPassword: user?.hasPassword,
+            googleId: user?.googleId,
             image: user?.image,
         };
     };
