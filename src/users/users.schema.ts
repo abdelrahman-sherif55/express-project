@@ -23,6 +23,15 @@ usersSchema.pre<Users>('save', async function (next: mongoose.CallbackWithoutRes
     next();
 });
 
+const imageUrl = (document: Users): void => {
+    if (document.image && document.image.startsWith(`user`))
+        document.image = `${process.env.BASE_URL}/images/users/${document.image}`;
+};
+
+usersSchema
+    .post('init', (document: Users) => imageUrl(document))
+    .post('save', (document: Users) => imageUrl(document));
+
 // usersSchema.pre<Users>(/^find/, function (next) {
 //     this.populate({ path: 'category', select: 'name_en name_ar' });
 //     next();

@@ -31,6 +31,7 @@ class AuthService {
         user.passwordResetCode = crypto.createHash('sha256').update(resetCode).digest('hex');
         user.passwordResetCodeExpires = Date.now() + (10 * 60 * 1000);
         user.passwordResetCodeVerify = false;
+        if (user.image && user.image.startsWith(`${process.env.BASE_URL}`)) user.image = user.image.split(`${process.env.BASE_URL}/images/users/`)[1];
 
         const message: string = `Your Reset Password Code is "${resetCode}"`;
         try {
@@ -58,6 +59,7 @@ class AuthService {
         });
         if (!user) return next(new ApiErrors(`${req.__('check_code_valid')}`, 400))
         user.passwordResetCodeVerify = true;
+        if (user.image && user.image.startsWith(`${process.env.BASE_URL}`)) user.image = user.image.split(`${process.env.BASE_URL}/images/users/`)[1];
         await user.save({validateModifiedOnly: true});
         res.status(200).json({success: true});
     });
@@ -74,6 +76,7 @@ class AuthService {
         user.passwordResetCodeExpires = undefined;
         user.passwordResetCodeVerify = undefined;
         user.passwordChangedAt = Date.now();
+        if (user.image && user.image.startsWith(`${process.env.BASE_URL}`)) user.image = user.image.split(`${process.env.BASE_URL}/images/users/`)[1];
         await user.save({validateModifiedOnly: true});
         res.status(200).json({success: true, data: "Password has been changed"});
     });
