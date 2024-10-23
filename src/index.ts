@@ -8,9 +8,10 @@ import examplesRoute from "./examples/examples.Route";
 import googleRoute from "./google/google.Route";
 import authRoute from "./auth/auth.Route";
 import usersRoute from "./users/users.Route";
+import profileRoute from "./profile/profile.Route";
 
 const mountRoutes = (app: Application): void => {
-    app.post('/api/paymob-webhook', verifyPaymob, (req: Request, res: Response, next: NextFunction) => {
+    app.post('/paymob-webhook', verifyPaymob, (req: Request, res: Response, next: NextFunction) => {
         if (req.body.obj.success === true) {
             res.redirect(307, `/api/v1/${req.body.obj.payment_key_claims.extra.routeName}`);
         } else {
@@ -30,10 +31,11 @@ const mountRoutes = (app: Application): void => {
         res.cookie('_coo_123', req.csrfToken());
         next();
     });
-    app.use('/api/v1/examples', examplesRoute);
     app.use('/auth/google', googleRoute);
-    app.use('/api/v1/users', usersRoute);
     app.use('/api/v1/auth', authRoute);
+    app.use('/api/v1/users', usersRoute);
+    app.use('/api/v1/profile', profileRoute);
+    app.use('/api/v1/examples', examplesRoute);
     app.all('*', (req: Request, res: Response, next: NextFunction) => {
         next(new ApiErrors(`The router ${req.originalUrl} is not found`, 400))
     });
