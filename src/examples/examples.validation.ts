@@ -43,5 +43,5 @@ class ExamplesValidation {
     };
 }
 
-const examplesValidator = new ExamplesValidation();
-export default examplesValidator;
+const examplesValidation = new ExamplesValidation();
+export default examplesValidation;

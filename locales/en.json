@@ -1,7 +1,7 @@
 {
   "--------------------------------------------------------------------": "Validation",
-  "not_found": "Document not found",
-  "invalid_id": "Invalid Mongo Id",
+  "not_found": "Data not found",
+  "invalid_id": "Invalid Id",
   "validation_field": "Field Required",
   "validation_value": "Invalid Value",
   "validation_email_check": "Email is Already Exist",
