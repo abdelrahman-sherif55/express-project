@@ -33,7 +33,7 @@ class RefactorHandler {
         apiFeatures = new Features(model.find(filterData), req.query).filter().sort().limitFields();
         const {mongooseQuery} = apiFeatures;
         const documents: modelType[] = await mongooseQuery;
-        res.status(200).json({results: documents.length, data: documents});
+        res.status(200).json({length: documents.length, data: documents});
     });
     getOne = <modelType>(model: mongoose.Model<any>, modelName?: string) => expressAsyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         let document = await model.findById(req.params.id);
@@ -43,7 +43,7 @@ class RefactorHandler {
     });
     createOne = <modelType>(model: mongoose.Model<any>) => expressAsyncHandler(async (req: Request, res: Response): Promise<void> => {
         const document = await model.create(req.body);
-        res.status(200).json({data: document});
+        res.status(201).json({data: document});
     });
     updateOne = <modelType>(model: mongoose.Model<any>) => expressAsyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         const document = await model.findByIdAndUpdate(req.params.id, req.body, {new: true});

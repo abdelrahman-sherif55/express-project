@@ -14,7 +14,8 @@ passport.use(
             if (!user) {
                 let checkUser = await usersSchema.findOne({email: profile._json.email});
                 if (checkUser) {
-                    if (!checkUser.image && profile._json.picture) checkUser.image = profile._json.picture;
+                    if (!checkUser.image && profile._json.picture) checkUser.image = profile._json.picture
+                    else checkUser.image = checkUser.image.split(`${process.env.BASE_URL}/images/users/`)[1]
                     checkUser.googleId = profile.id;
                     await checkUser.save({validateModifiedOnly: true});
                 } else {
