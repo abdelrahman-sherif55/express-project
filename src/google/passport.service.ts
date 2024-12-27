@@ -1,13 +1,16 @@
+import dotenv from "dotenv";
 import passport from "passport";
 import {Strategy as GoogleStrategy} from "passport-google-oauth20";
 import usersSchema from "../users/users.schema";
 import tokens from "../global/utils/createToken";
 
+dotenv.config();
+
 passport.use(
     new GoogleStrategy({
-        clientID: `clint Id here`,
-        clientSecret: `client secret here`,
-        callbackURL: `baseurl/auth/google/callback`
+        clientID: process.env.GOOGLE_CLIENT_ID!,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        callbackURL: process.env.GOOGLE_CALLBACK!
     }, async (accessToken, refreshToken, profile, done) => {
         try {
             let user = await usersSchema.findOne({googleId: profile.id});

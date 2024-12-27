@@ -8,6 +8,9 @@ declare namespace NodeJS {
         JWT_RESET_SECRET_KEY: string;
         EXPIRED_TIME: string;
         EXPIRED_RESET_TIME: string;
+        GOOGLE_CLIENT_ID: string;
+        GOOGLE_CLIENT_SECRET: string;
+        GOOGLE_CALLBACK: string;
         EMAIL_HOST: string;
         EMAIL_PORT: any;
         EMAIL_SECURE: any;
