@@ -1,3 +1,4 @@
+import fs from "fs";
 import {NextFunction, Request, Response} from 'express';
 import asyncHandler from 'express-async-handler';
 import sharp from 'sharp';
@@ -6,24 +7,27 @@ import usersSchema from "./users.schema";
 import {Users} from "./users.interface";
 import refactorHandler from "../global/refactor.service";
 import {uploadSingleFile} from '../global/middlewares/upload.middleware';
-import usersValidator from "./users.validation";
 import sanitization from "../global/utils/sanitization";
-import ApiErrors from "../global/utils/apiErrors";
 
 class UserService {
-    uploadUserImage = uploadSingleFile(['image'], 'image');
-    resizeUserImage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    uploadImage = uploadSingleFile(['image'], 'image');
+    saveImage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
         if (req.file) {
+            const folderPath: string = 'uploads/images/users';
+            if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, {recursive: true});
             const imgName = `user-${Date.now()}.webp`
             await sharp(req.file.buffer)
                 .toFormat('webp')
                 .webp({quality: 95})
                 .toFile(`uploads/images/users/${imgName}`)
             req.body.image = imgName;
-            const user = await usersSchema.findById(req.params.id);
-            if (user && user.image && user.image.startsWith(`${process.env.BASE_URL}`)) {
-                const image: string = user.image.split(`${process.env.BASE_URL}/images/users/`)[1];
-                usersValidator.deleteUserImage(image)
+
+            if (req.params.id) {
+                const user = await usersSchema.findById(req.params.id);
+                if (user && user.image && user.image.startsWith(`${process.env.BASE_URL}`)) {
+                    const image: string = user.image.split('/').pop()!;
+                    this.deleteImage(image)
+                }
             }
         }
         next();
@@ -40,22 +44,22 @@ class UserService {
         }, {new: true});
         res.status(200).json({data: sanitization.User(user)});
     });
-    deleteUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-        const user = await usersSchema.findByIdAndDelete(req.params.id);
-        if (!user) return next(new ApiErrors(`${req.__('not_found')}`, 404));
-        if (user.image && user.image.startsWith(`${process.env.BASE_URL}`)) {
-            const image: string = user.image.split(`${process.env.BASE_URL}/images/users/`)[1];
-            usersValidator.deleteUserImage(image)
-        }
-        res.status(204).json();
-    });
-    changeUserPassword = asyncHandler(async (req: Request, res: Response) => {
+    deleteUser = refactorHandler.deleteOne<Users>(usersSchema, 'images/users');
+    changePassword = asyncHandler(async (req: Request, res: Response) => {
         const user = await usersSchema.findByIdAndUpdate(req.params.id, {
             password: await bcrypt.hash(req.body.password, 13),
             passwordChangedAt: Date.now()
         }, {new: true});
         res.status(200).json({data: sanitization.User(user)});
     });
+
+    deleteImage(image: string): void {
+        const imagePath: string = `uploads/images/users/${image}`;
+        fs.unlink(imagePath, (err): void => {
+            if (err) console.error(`Error deleting image ${image}: ${err}`);
+            else console.log(`Successfully deleted image ${image}`);
+        });
+    };
 }
 
 const usersService = new UserService();

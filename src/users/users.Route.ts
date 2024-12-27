@@ -5,17 +5,17 @@ import authService from '../auth/auth.service';
 
 const usersRoute: Router = Router();
 
-usersRoute.use(authService.protectRoutes, authService.checkActive, authService.allowedTo('manager'));
+usersRoute.use(authService.protectRoutes, authService.checkActive, authService.allowedTo('admin'));
 
 usersRoute.route('/')
     .get(usersService.getAllUsers)
-    .post(usersService.uploadUserImage, usersService.resizeUserImage, usersValidation.createUser, usersService.createUser);
+    .post(usersService.uploadImage, usersService.saveImage, usersValidation.createUser, usersService.createUser);
 
 usersRoute.route('/:id')
     .get(usersValidation.getUser, usersService.getUser)
-    .put(usersService.uploadUserImage, usersService.resizeUserImage, usersValidation.updateUser, usersService.updateUser)
+    .patch(usersService.uploadImage, usersService.saveImage, usersValidation.updateUser, usersService.updateUser)
     .delete(usersValidation.deleteUser, usersService.deleteUser);
 
-usersRoute.put('/:id/changePassword', usersValidation.changeUserPassword, usersService.changeUserPassword);
+usersRoute.patch('/:id/change-Password', usersValidation.changePassword, usersService.changePassword);
 
 export default usersRoute;

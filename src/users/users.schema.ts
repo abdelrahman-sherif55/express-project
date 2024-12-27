@@ -32,9 +32,4 @@ usersSchema
     .post('init', (document: Users) => imageUrl(document))
     .post('save', (document: Users) => imageUrl(document));
 
-// usersSchema.pre<Users>(/^find/, function (next) {
-//     this.populate({ path: 'category', select: 'name_en name_ar' });
-//     next();
-// });
-
 export default mongoose.model<Users>('users', usersSchema);

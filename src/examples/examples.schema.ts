@@ -8,18 +8,9 @@ const examplesSchema: mongoose.Schema = new mongoose.Schema<Examples>({
 }, {timestamps: true});
 
 const imageUrl = (document: Examples): void => {
-    if (document.cover) {
-        const imageUrl: string = `${process.env.BASE_URL}/images/Examples/${document.cover}`;
-        document.cover = imageUrl;
-    }
-    if (document.images) {
-        const imagesList: string[] = [];
-        document.images.forEach((image: string): void => {
-            const imageUrl: string = `${process.env.BASE_URL}/images/Examples/${image}`;
-            imagesList.push(imageUrl);
-        });
-        document.images = imagesList;
-    }
+    if (document.cover) document.cover = `${process.env.BASE_URL}/images/examples/${document.cover}`;
+    if (document.images) document.images = document.images.map((image) => `${process.env.BASE_URL}/images/examples/${image}`);
+
 };
 
 examplesSchema.post('init', (document: Examples): void => {
@@ -33,4 +24,4 @@ examplesSchema.post('init', (document: Examples): void => {
 //     next();
 // });
 
-export default mongoose.model<Examples>('Examples', examplesSchema);
+export default mongoose.model<Examples>('examples', examplesSchema);

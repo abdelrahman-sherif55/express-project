@@ -5,6 +5,5 @@ declare module 'express' {
         filterData?: FilterData;
         user?: any;
         files?: any;
-        newToken?: any;
     }
 }

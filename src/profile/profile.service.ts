@@ -2,28 +2,31 @@ import {NextFunction, Request, Response} from 'express';
 import asyncHandler from 'express-async-handler';
 import sharp from 'sharp';
 import bcrypt from 'bcryptjs';
-import profileValidation from "./profile.validation";
 import usersSchema from "../users/users.schema";
 import {Users} from "../users/users.interface";
 import refactorHandler from "../global/refactor.service";
 import {uploadSingleFile} from '../global/middlewares/upload.middleware';
 import tokens from '../global/utils/createToken';
 import sanitization from "../global/utils/sanitization";
+import fs from "fs";
 
 class ProfileService {
-    uploadProfileImage = uploadSingleFile(['image'], 'image');
-    resizeProfileImage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    uploadImage = uploadSingleFile(['image'], 'image');
+    saveImage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
         if (req.file) {
-            const imgName = `user-${Date.now()}.webp`
+            const folderPath: string = 'uploads/images/users';
+            if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, {recursive: true});
+            const imgName = `user-${Date.now()}.webp`;
             await sharp(req.file.buffer)
                 .toFormat('webp')
                 .webp({quality: 95})
-                .toFile(`uploads/images/users/${imgName}`)
+                .toFile(`uploads/images/users/${imgName}`);
             req.body.image = imgName;
-            const user = await usersSchema.findById(req.params.id);
-            if (user && user.image && user.image.startsWith(`${process.env.BASE_URL}`)) {
-                const image: string = user.image.split(`${process.env.BASE_URL}/images/users/`)[1];
-                profileValidation.deleteProfileImage(image)
+
+            const user = req.user;
+            if (user.image && user.image.startsWith(`${process.env.BASE_URL}`)) {
+                const image: string = user.image.split('/').pop();
+                this.deleteImage(image);
             }
         }
         next();
@@ -56,6 +59,14 @@ class ProfileService {
         const token = tokens.createToken(user?._id, user?.role!);
         res.status(200).json({token, data: sanitization.User(user)});
     });
+
+    deleteImage(image: string): void {
+        const imagePath: string = `uploads/images/users/${image}`;
+        fs.unlink(imagePath, (err): void => {
+            if (err) console.error(`Error deleting image ${image}: ${err}`);
+            else console.log(`Successfully deleted image ${image}`);
+        });
+    };
 }
 
 const profileService = new ProfileService();

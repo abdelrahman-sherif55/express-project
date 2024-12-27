@@ -12,7 +12,7 @@ examplesRoute.get('/list', examplesService.getExamplesList);
 
 examplesRoute.route('/:id')
     .get(examplesValidation.getExample, examplesService.getExample)
-    .put(examplesValidation.updateExample, examplesService.updateExample)
+    .patch(examplesValidation.updateExample, examplesService.updateExample)
     .delete(examplesValidation.deleteExample, examplesService.deleteExample);
 
 export default examplesRoute;

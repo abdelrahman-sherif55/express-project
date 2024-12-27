@@ -1,7 +1,6 @@
 {
   "--------------------------------------------------------------------": "Validation",
-  "not_found": "Data not found",
-  "invalid_id": "Invalid Id",
+  "not_found": "Not Valid Information. try again",
   "validation_field": "Field Required",
   "validation_value": "Invalid Value",
   "validation_email_check": "Email is Already Exist",
@@ -13,15 +12,13 @@
   "session_expired": "session time Expired, please login again..",
   "----------------------------------------------------------------": "Authentication",
   "invalid_login": "Invalid Email or Password",
-  "check_email": "Email not found",
+  "check_email": "Invalid Email",
   "send_email": "Error while sending mail... try again later",
-  "check_verify_code": "you don't have permission to verify reset code",
   "check_code_valid": "Invalid or expired reset code",
-  "check_reset_code": "You don't have permission to change password",
-  "check_code_verify": "Please verify your code first",
-  "check_login": "You are not logged in! Please log in to get access.",
+  "password_changed": "Password Changed Successfully",
+  "check_login": "Please login to continue.",
   "check_user": "The user does not exist anymore...",
   "check_password_changed": "Your password has been updated since you logged in last time. Please log in again.",
   "check_active": "Your account is deactivated",
-  "allowed_to": "Privilege denied! You cannot perform this action"
+  "allowed_to": "You cannot perform this action"
 }
