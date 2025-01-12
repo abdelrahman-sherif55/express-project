@@ -5,11 +5,14 @@ import sharp from 'sharp';
 import bcrypt from 'bcryptjs';
 import usersSchema from "./users.schema";
 import {Users} from "./users.interface";
-import refactorHandler from "../global/refactor.service";
+import RefactorService from "../global/refactor.service";
 import {uploadSingleFile} from '../global/middlewares/upload.middleware';
 import sanitization from "../global/utils/sanitization";
 
 class UserService {
+    constructor(private readonly refactorService: RefactorService<Users>) {
+    }
+
     uploadImage = uploadSingleFile(['image'], 'image');
     saveImage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
         if (req.file) {
@@ -33,9 +36,9 @@ class UserService {
         next();
     });
 
-    getAllUsers = refactorHandler.getAll<Users>(usersSchema, 'users');
-    createUser = refactorHandler.createOne<Users>(usersSchema);
-    getUser = refactorHandler.getOne<Users>(usersSchema, 'users');
+    getAllUsers = this.refactorService.getAll(usersSchema, 'users');
+    createUser = this.refactorService.createOne(usersSchema);
+    getUser = this.refactorService.getOne(usersSchema, 'users');
     updateUser = asyncHandler(async (req: Request, res: Response) => {
         const user = await usersSchema.findByIdAndUpdate(req.params.id, {
             name: req.body.name,
@@ -44,7 +47,7 @@ class UserService {
         }, {new: true});
         res.status(200).json({data: sanitization.User(user)});
     });
-    deleteUser = refactorHandler.deleteOne<Users>(usersSchema, 'images/users');
+    deleteUser = this.refactorService.deleteOne(usersSchema, 'images/users');
     changePassword = asyncHandler(async (req: Request, res: Response) => {
         const user = await usersSchema.findByIdAndUpdate(req.params.id, {
             password: await bcrypt.hash(req.body.password, 13),
@@ -62,5 +65,5 @@ class UserService {
     };
 }
 
-const usersService = new UserService();
+const usersService = new UserService(new RefactorService);
 export default usersService;

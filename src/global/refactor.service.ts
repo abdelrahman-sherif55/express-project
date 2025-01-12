@@ -7,8 +7,8 @@ import Features from "./utils/features";
 import sanitization from "./utils/sanitization";
 import {FilterData} from "./interfaces/filterData.interface";
 
-class RefactorHandler {
-    getAll = <modelType>(model: mongoose.Model<any>, modelName: string) => expressAsyncHandler(async (req: Request, res: Response): Promise<void> => {
+export default class RefactorService<modelType> {
+    getAll = (model: mongoose.Model<any>, modelName: string) => expressAsyncHandler(async (req: Request, res: Response): Promise<void> => {
         let filterData: FilterData = {};
         let searchLength: number = 0;
 
@@ -27,7 +27,7 @@ class RefactorHandler {
         if (modelName === 'users') documents = documents.map(user => sanitization.User(user));
         res.status(200).json({length: documents.length, pagination: paginationResult, data: documents});
     });
-    getAllList = <modelType>(model: mongoose.Model<any>) => expressAsyncHandler(async (req: Request, res: Response): Promise<void> => {
+    getAllList = (model: mongoose.Model<any>) => expressAsyncHandler(async (req: Request, res: Response): Promise<void> => {
         let filterData: FilterData = {};
         let apiFeatures: Features;
         if (req.filterData) filterData = req.filterData;
@@ -36,22 +36,22 @@ class RefactorHandler {
         const documents: modelType[] = await mongooseQuery;
         res.status(200).json({length: documents.length, data: documents});
     });
-    getOne = <modelType>(model: mongoose.Model<any>, modelName?: string) => expressAsyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    getOne = (model: mongoose.Model<any>, modelName?: string) => expressAsyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         let document: any = await model.findById(req.params.id);
         if (!document) return next(new ApiErrors(`${req.__('not_found')}`, 404));
         if (modelName === 'users') document = sanitization.User(document);
         res.status(200).json({data: document});
     });
-    createOne = <modelType>(model: mongoose.Model<any>) => expressAsyncHandler(async (req: Request, res: Response): Promise<void> => {
+    createOne = (model: mongoose.Model<any>) => expressAsyncHandler(async (req: Request, res: Response): Promise<void> => {
         const document: modelType = await model.create(req.body);
         res.status(201).json({data: document});
     });
-    updateOne = <modelType>(model: mongoose.Model<any>) => expressAsyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    updateOne = (model: mongoose.Model<any>) => expressAsyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         const document: modelType | null = await model.findByIdAndUpdate(req.params.id, req.body, {new: true});
         if (!document) return next(new ApiErrors(`${req.__('not_found')}`, 404));
         res.status(200).json({data: document});
     });
-    deleteOne = <modelType>(model: mongoose.Model<any>, folderPath?: string) => expressAsyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    deleteOne = (model: mongoose.Model<any>, folderPath?: string) => expressAsyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         const document: any = await model.findByIdAndDelete(req.params.id);
         if (!document) return next(new ApiErrors(`${req.__('not_found')}`, 404));
         if (document.cover && document.cover.startsWith(`${process.env.BASE_URL}`)) {
@@ -78,6 +78,3 @@ class RefactorHandler {
         });
     };
 }
-
-const refactorHandler = new RefactorHandler();
-export default refactorHandler;

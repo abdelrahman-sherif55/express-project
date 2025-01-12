@@ -6,16 +6,19 @@ import examplesSchema from "./examples.schema";
 import ApiErrors from "../global/utils/apiErrors";
 import {Examples} from "./examples.interface";
 import {FilterData} from "../global/interfaces/filterData.interface";
-import refactorHandler from "../global/refactor.service";
+import RefactorService from "../global/refactor.service";
 import {uploadMultiFiles, uploadSingleFile} from "../global/middlewares/upload.middleware";
 
 class ExamplesService {
-    getExamples = refactorHandler.getAll<Examples>(examplesSchema, 'examples');
-    getExamplesList = refactorHandler.getAllList<Examples>(examplesSchema);
-    getExample = refactorHandler.getOne<Examples>(examplesSchema, 'examples');
-    createExample = refactorHandler.createOne<Examples>(examplesSchema);
-    updateExample = refactorHandler.updateOne<Examples>(examplesSchema);
-    deleteExample = refactorHandler.deleteOne<Examples>(examplesSchema, 'images/examples');
+    constructor(private readonly refactorService: RefactorService<Examples>) {
+    }
+
+    getExamples = this.refactorService.getAll(examplesSchema, 'examples');
+    getExamplesList = this.refactorService.getAllList(examplesSchema);
+    getExample = this.refactorService.getOne(examplesSchema, 'examples');
+    createExample = this.refactorService.createOne(examplesSchema);
+    updateExample = this.refactorService.updateOne(examplesSchema);
+    deleteExample = this.refactorService.deleteOne(examplesSchema, 'images/examples');
 
     filterExamples = (req: Request, res: Response, next: NextFunction): void => {
         let filterData: FilterData = {};
@@ -106,5 +109,5 @@ class ExamplesService {
     };
 }
 
-const examplesService = new ExamplesService();
+const examplesService = new ExamplesService(new RefactorService);
 export default examplesService;

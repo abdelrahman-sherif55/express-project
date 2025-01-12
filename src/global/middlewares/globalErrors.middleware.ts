@@ -5,6 +5,7 @@ import {CustomErrors} from '../interfaces/customErrors.interface';
 const devErrors = (err: CustomErrors, res: express.Response) =>
     res.status(err.statusCode!).json({
         error: err,
+        status: err.status,
         message: err.message,
         stack: err.stack
     });

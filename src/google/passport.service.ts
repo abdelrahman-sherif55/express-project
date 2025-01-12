@@ -32,8 +32,9 @@ passport.use(
                 }
                 user = checkUser;
             }
-            const token = tokens.createToken(user?._id, user?.role!)
-            done(null, {token});
+            const token = tokens.createToken(user?._id, user?.role!);
+            const refreshToken = tokens.createRefreshToken(user?._id, user?.role!);
+            done(null, {token, refreshToken});
         } catch (err) {
             done(err, false)
         }

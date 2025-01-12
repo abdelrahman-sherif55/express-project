@@ -1,16 +1,19 @@
+import fs from "fs";
 import {NextFunction, Request, Response} from 'express';
 import asyncHandler from 'express-async-handler';
 import sharp from 'sharp';
 import bcrypt from 'bcryptjs';
 import usersSchema from "../users/users.schema";
 import {Users} from "../users/users.interface";
-import refactorHandler from "../global/refactor.service";
+import RefactorService from "../global/refactor.service";
 import {uploadSingleFile} from '../global/middlewares/upload.middleware';
 import tokens from '../global/utils/createToken';
 import sanitization from "../global/utils/sanitization";
-import fs from "fs";
 
 class ProfileService {
+    constructor(private readonly refactorService: RefactorService<Users>) {
+    }
+
     uploadImage = uploadSingleFile(['image'], 'image');
     saveImage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
         if (req.file) {
@@ -36,7 +39,7 @@ class ProfileService {
         req.params.id = req.user._id.toString();
         next();
     };
-    getProfile = refactorHandler.getOne<Users>(usersSchema, 'users');
+    getProfile = this.refactorService.getOne(usersSchema, 'users');
     updateProfile = asyncHandler(async (req: Request, res: Response) => {
         const user = await usersSchema.findByIdAndUpdate(req.user?._id, {
             name: req.body.name,
@@ -69,5 +72,5 @@ class ProfileService {
     };
 }
 
-const profileService = new ProfileService();
+const profileService = new ProfileService(new RefactorService);
 export default profileService;

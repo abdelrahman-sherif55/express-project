@@ -6,8 +6,10 @@ declare namespace NodeJS {
         NODE_ENV: 'development' | 'product';
         JWT_SECRET_KEY: string;
         JWT_RESET_SECRET_KEY: string;
+        JWT_REFRESH_SECRET_KEY: string;
         EXPIRED_TIME: string;
         EXPIRED_RESET_TIME: string;
+        EXPIRED_REFRESH_TIME: string;
         GOOGLE_CLIENT_ID: string;
         GOOGLE_CLIENT_SECRET: string;
         GOOGLE_CALLBACK: string;

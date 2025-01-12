@@ -8,7 +8,6 @@ import usersSchema from "../users/users.schema";
 import ApiErrors from "../global/utils/apiErrors";
 import sendEmail from "../global/utils/sendEmail";
 import {Users} from "../users/users.interface";
-import sanitization from "../global/utils/sanitization";
 import tokens from "../global/utils/createToken";
 
 class AuthService {
@@ -18,8 +17,8 @@ class AuthService {
             name: req.body.name,
             password: req.body.password
         });
-        const token: string = tokens.createToken(user._id, user.role);
-        res.status(201).json({token, data: sanitization.User(user)});
+        const tokens = this.createTokens(user, res);
+        res.status(201).json({token: tokens.token, refreshToken: tokens.refreshToken});
     });
     login = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         const user: Users | null = await usersSchema.findOne({email: req.body.email});
@@ -28,8 +27,32 @@ class AuthService {
             return;
         }
         if (!user.active) return next(new ApiErrors(`${req.__('check_active')}`, 403));
-        const token: string = tokens.createToken(user._id, user.role);
-        res.status(200).json({token, data: sanitization.User(user)});
+        const tokens = this.createTokens(user, res);
+        res.status(200).json({token: tokens.token, refreshToken: tokens.refreshToken});
+    });
+    adminLogin = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        const user: Users | null = await usersSchema.findOne({email: req.body.email, role: {$in: ['admin']}});
+        if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
+            res.status(400).json({errors: [{path: 'password', msg: `${req.__('invalid_login')}`}]});
+            return;
+        }
+        const tokens = this.createTokens(user, res);
+        res.status(200).json({token: tokens.token, refreshToken: tokens.refreshToken});
+    });
+    logout = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+        res.clearCookie('token', {
+            httpOnly: false,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 0
+        });
+        res.clearCookie('refresh', {
+            httpOnly: false,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 0
+        });
+        res.status(200).json({success: true});
     });
     forgetPassword = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         const user: Users | null = await usersSchema.findOne({email: req.body.email});
@@ -51,7 +74,13 @@ class AuthService {
         }
 
         const resetToken: string = tokens.createResetToken(user._id);
-        res.status(200).json({success: true, token: resetToken});
+        res.cookie('reset', resetToken, {
+            httpOnly: false,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 30 * 60 * 1000
+        });
+        res.status(200).json({success: true, reset: resetToken});
     });
     verifyResetCode = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         const decodedToken: any = this.verifyToken(req, next);
@@ -80,13 +109,22 @@ class AuthService {
         user.passwordChangedAt = Date.now();
         if (user.image && user.image.startsWith(`${process.env.BASE_URL}`)) user.image = user.image.split('/').pop()!;
         await user.save({validateModifiedOnly: true});
+
+        res.clearCookie('reset', {
+            httpOnly: false,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 0
+        });
         res.status(200).json({success: true, data: `${req.__('password_changed')}`});
     });
     protectRoutes = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         let token: string = '';
         if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) token = req.headers.authorization.split(' ')[1];
         else return next(new ApiErrors(`${req.__('check_login')}`, 401));
+
         const decoded: any = Jwt.verify(token, process.env.JWT_SECRET_KEY!);
+        if (decoded.exp - decoded.iat !== 86400) return next(new ApiErrors(`${req.__('check_login')}`, 401));
 
         const user: Users | null = await usersSchema.findById(decoded._id);
         if (!user) return next(new ApiErrors(`${req.__('check_user')}`, 401));
@@ -98,6 +136,31 @@ class AuthService {
 
         req.user = user;
         next();
+    });
+    refreshToken = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        let token: any;
+        if (req.headers.authorization && req.headers.authorization.startsWith("Refresh")) token = req.headers.authorization.split(' ')[1];
+        else return next(new ApiErrors(`${req.__('check_login')}`, 401));
+
+        if (!([undefined, null, 'null', ''].includes(token))) {
+            const decoded: any = Jwt.decode(token);
+            if (decoded.exp - decoded.iat !== 2592000 || decoded.exp < Math.trunc(Date.now() / 1000)) {
+                this.clearCookies(req, res, next);
+                return next(new ApiErrors(`${req.__('check_login')}`, 401));
+            }
+
+            token = tokens.createToken(decoded._id, decoded.role);
+            res.cookie('token', token, {
+                httpOnly: false,
+                secure: false,
+                sameSite: 'strict',
+                maxAge: 24 * 60 * 60 * 1000
+            });
+        } else {
+            this.clearCookies(req, res, next);
+            return next(new ApiErrors(`${req.__('check_login')}`, 401));
+        }
+        res.status(200).json({token});
     });
     allowedTo = (...roles: string[]) => asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         if (!(roles.includes(req.user?.role))) return next(new ApiErrors(`${req.__('allowed_to')}`, 403));
@@ -113,13 +176,46 @@ class AuthService {
         message: 'try again later'
     });
 
+    createTokens(user: Users, res: Response) {
+        const token: string = tokens.createToken(user._id, user.role);
+        const refreshToken: string = tokens.createRefreshToken(user._id, user.role);
+        res.cookie('token', token, {
+            httpOnly: false,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 24 * 60 * 60 * 1000
+        });
+        res.cookie('refresh', refreshToken, {
+            httpOnly: false,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 30 * 24 * 60 * 60 * 1000
+        });
+        return {token, refreshToken};
+    };
+
     verifyToken(req: Request, next: NextFunction) {
         let resetToken: string = '';
         if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) resetToken = req.headers.authorization.split(' ')[1]
         else return next(new ApiErrors(`${req.__('allowed_to')}`, 403));
         const decodedToken: any = Jwt.verify(resetToken, process.env.JWT_RESET_SECRET_KEY!);
         return decodedToken;
-    }
+    };
+
+    clearCookies = (req: Request, res: Response, next: NextFunction) => {
+        res.clearCookie('token', {
+            httpOnly: false,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 0
+        });
+        res.clearCookie('refresh', {
+            httpOnly: false,
+            secure: false,
+            sameSite: 'strict',
+            maxAge: 0
+        });
+    };
 }
 
 const authService = new AuthService();
