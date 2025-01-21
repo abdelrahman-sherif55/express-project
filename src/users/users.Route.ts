@@ -13,9 +13,9 @@ usersRoute.route('/')
 
 usersRoute.route('/:id')
     .get(usersValidation.getUser, usersService.getUser)
-    .patch(usersService.uploadImage, usersService.saveImage, usersValidation.updateUser, usersService.updateUser)
-    .delete(usersValidation.deleteUser, usersService.deleteUser);
+    .patch(usersService.checkUser, usersService.uploadImage, usersService.saveImage, usersValidation.updateUser, usersService.updateUser)
+    .delete(usersService.checkUser, usersValidation.deleteUser, usersService.deleteUser);
 
-usersRoute.patch('/:id/change-Password', usersValidation.changePassword, usersService.changePassword);
+usersRoute.patch('/:id/change-Password', usersService.checkUser, usersValidation.changePassword, usersService.changePassword);
 
 export default usersRoute;

@@ -8,6 +8,7 @@ import {Users} from "./users.interface";
 import RefactorService from "../global/refactor.service";
 import {uploadSingleFile} from '../global/middlewares/upload.middleware';
 import sanitization from "../global/utils/sanitization";
+import ApiErrors from "../global/utils/apiErrors";
 
 class UserService {
     constructor(private readonly refactorService: RefactorService<Users>) {
@@ -54,6 +55,10 @@ class UserService {
             passwordChangedAt: Date.now()
         }, {new: true});
         res.status(200).json({data: sanitization.User(user)});
+    });
+    checkUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        if (req.params.id === req.user._id.toString()) return next(new ApiErrors(`${req.__('allowed_to')}`, 403));
+        next();
     });
 
     deleteImage(image: string): void {
