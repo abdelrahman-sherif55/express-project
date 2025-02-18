@@ -13,6 +13,13 @@ class Features {
         executedFields.forEach((field: string): void => {
             delete queryStringObj[field]
         });
+        Object.keys(queryStringObj).forEach((key: string): void => {
+            const value = queryStringObj[key];
+            if (value === "" || value === null || value === undefined ||
+                (Array.isArray(value) && value.length === 0)) {
+                delete queryStringObj[key];
+            }
+        });
         let queryStr: string = JSON.stringify(queryStringObj);
         queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`);
         this.mongooseQuery = this.mongooseQuery.find(JSON.parse(queryStr));

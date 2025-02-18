@@ -39,24 +39,16 @@ class AuthService {
         const tokens = this.createTokens(user, res);
         res.status(200).json({token: tokens.token, refreshToken: tokens.refreshToken});
     });
-    logout = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-        res.clearCookie('token', {
-            httpOnly: false,
-            secure: false,
-            sameSite: 'strict',
-            maxAge: 0
-        });
-        res.clearCookie('refresh', {
-            httpOnly: false,
-            secure: false,
-            sameSite: 'strict',
-            maxAge: 0
-        });
+    logout = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        this.clearCookies(req, res, next);
         res.status(200).json({success: true});
     });
     forgetPassword = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         const user: Users | null = await usersSchema.findOne({email: req.body.email});
-        if (!user) return next(new ApiErrors(`${req.__('check_email')}`, 404));
+        if (!user) {
+            res.status(400).json({errors: [{path: 'email', msg: `${req.__('check_email')}`}]});
+            return;
+        }
 
         const resetCode: string = Math.floor(100000 + Math.random() * 900000).toString();
         user.passwordResetCode = crypto.createHash('sha256').update(resetCode).digest('hex');
@@ -91,7 +83,10 @@ class AuthService {
             passwordResetCode: hashedResetCode,
             passwordResetCodeExpires: {$gt: Date.now()}
         });
-        if (!user) return next(new ApiErrors(`${req.__('check_code_valid')}`, 403))
+        if (!user) {
+            res.status(400).json({errors: [{path: 'passwordResetCode', msg: `${req.__('check_code_valid')}`}]});
+            return;
+        }
         user.passwordResetCodeVerify = true;
         if (user.image && user.image.startsWith(`${process.env.BASE_URL}`)) user.image = user.image.split('/').pop()!;
         await user.save({validateModifiedOnly: true});
