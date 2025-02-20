@@ -1,7 +1,9 @@
+import {Users} from "../../users/users.interface";
+
 class Sanitization {
-    User(user: any) {
+    User(user: Users) {
         return {
-            _id: user._id,
+            _id: user?._id,
             name: user?.name,
             email: user?.email,
             role: user?.role,

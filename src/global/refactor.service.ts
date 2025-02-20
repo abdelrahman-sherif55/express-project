@@ -23,7 +23,7 @@ export default class RefactorService<modelType> {
         const documentCount: number = searchLength || await model.find(filterData).countDocuments();
         const apiFeatures: Features = new Features(model.find(filterData), req.query).filter().sort().limitFields().search(modelName).pagination(documentCount);
         const {mongooseQuery, paginationResult} = apiFeatures;
-        let documents: any[] = await mongooseQuery;
+        let documents: modelType[] | any[] = await mongooseQuery;
         if (modelName === 'users') documents = documents.map(user => sanitization.User(user));
         res.status(200).json({length: documents.length, pagination: paginationResult, data: documents});
     });
@@ -37,13 +37,14 @@ export default class RefactorService<modelType> {
         res.status(200).json({length: documents.length, data: documents});
     });
     getOne = (model: mongoose.Model<any>, modelName?: string) => expressAsyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        let document: any = await model.findById(req.params.id);
+        let document: modelType | any = await model.findById(req.params.id);
         if (!document) return next(new ApiErrors(`${req.__('not_found')}`, 404));
         if (modelName === 'users') document = sanitization.User(document);
         res.status(200).json({data: document});
     });
-    createOne = (model: mongoose.Model<any>) => expressAsyncHandler(async (req: Request, res: Response): Promise<void> => {
-        const document: modelType = await model.create(req.body);
+    createOne = (model: mongoose.Model<any>, modelName?: string) => expressAsyncHandler(async (req: Request, res: Response): Promise<void> => {
+        let document: modelType | any = await model.create(req.body);
+        if (modelName === 'users') document = sanitization.User(document);
         res.status(201).json({data: document});
     });
     updateOne = (model: mongoose.Model<any>) => expressAsyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {

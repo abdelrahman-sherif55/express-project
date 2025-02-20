@@ -40,20 +40,22 @@ class UserService {
     getAllUsers = this.refactorService.getAll(usersSchema, 'users');
     createUser = this.refactorService.createOne(usersSchema);
     getUser = this.refactorService.getOne(usersSchema, 'users');
-    updateUser = asyncHandler(async (req: Request, res: Response) => {
-        const user = await usersSchema.findByIdAndUpdate(req.params.id, {
+    updateUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const user: Users | null = await usersSchema.findByIdAndUpdate(req.params.id, {
             name: req.body.name,
             image: req.body.image,
             active: req.body.active
         }, {new: true});
+        if (!user) return next(new ApiErrors(`${req.__('not_found')}`, 404));
         res.status(200).json({data: sanitization.User(user)});
     });
     deleteUser = this.refactorService.deleteOne(usersSchema, 'images/users');
-    changePassword = asyncHandler(async (req: Request, res: Response) => {
-        const user = await usersSchema.findByIdAndUpdate(req.params.id, {
+    changePassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+        const user: Users | null = await usersSchema.findByIdAndUpdate(req.params.id, {
             password: await bcrypt.hash(req.body.password, 13),
             passwordChangedAt: Date.now()
         }, {new: true});
+        if (!user) return next(new ApiErrors(`${req.__('not_found')}`, 404));
         res.status(200).json({data: sanitization.User(user)});
     });
     checkUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {

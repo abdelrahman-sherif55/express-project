@@ -41,26 +41,26 @@ class ProfileService {
     };
     getProfile = this.refactorService.getOne(usersSchema, 'users');
     updateProfile = asyncHandler(async (req: Request, res: Response) => {
-        const user = await usersSchema.findByIdAndUpdate(req.user?._id, {
+        const user: Users | null = await usersSchema.findByIdAndUpdate(req.user?._id, {
             name: req.body.name,
             image: req.body.image,
         }, {new: true});
-        res.status(200).json({data: sanitization.User(user)});
+        res.status(200).json({data: sanitization.User(user!)});
     });
     createPassword = asyncHandler(async (req: Request, res: Response) => {
-        const user = await usersSchema.findOneAndUpdate({_id: req.user?._id, hasPassword: false}, {
+        const user: Users | null = await usersSchema.findOneAndUpdate({_id: req.user?._id, hasPassword: false}, {
             password: await bcrypt.hash(req.body.password, 13),
             hasPassword: true
         }, {new: true});
-        res.status(200).json({data: sanitization.User(user)});
+        res.status(200).json({data: sanitization.User(user!)});
     });
     changePassword = asyncHandler(async (req: Request, res: Response) => {
-        const user = await usersSchema.findByIdAndUpdate(req.user?._id, {
+        const user: Users | null = await usersSchema.findByIdAndUpdate(req.user?._id, {
             password: await bcrypt.hash(req.body.password, 13),
             passwordChangedAt: Date.now()
         }, {new: true});
         const token = tokens.createToken(user?._id, user?.role!);
-        res.status(200).json({token, data: sanitization.User(user)});
+        res.status(200).json({token, data: sanitization.User(user!)});
     });
 
     deleteImage(image: string): void {

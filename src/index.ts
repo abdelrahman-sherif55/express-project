@@ -37,7 +37,7 @@ const mountRoutes = (app: Application): void => {
     app.use('/api/v1/profile', profileRoute);
     app.use('/api/v1/examples', examplesRoute);
     app.all('*', (req: Request, res: Response, next: NextFunction) => {
-        next(new ApiErrors(`The router ${req.originalUrl} is not found`, 400))
+        next(new ApiErrors(`The router ${req.originalUrl} is not found`, 404))
     });
     app.use(globalErrors);
 };

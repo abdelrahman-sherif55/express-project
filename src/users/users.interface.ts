@@ -1,18 +1,21 @@
-import {Document} from "mongoose";
+import {Document, Schema} from "mongoose";
 
 export interface Users extends Document {
-    email: string;
+    readonly _id: Schema.Types.ObjectId;
+    readonly email: string;
     password: string;
-    name: string;
-    active: boolean;
-    role: UsersRole;
-    googleId: string;
-    hasPassword: boolean;
+    readonly name: string;
+    readonly active: boolean;
+    readonly role: UsersRole;
+    readonly googleId: string;
+    readonly hasPassword: boolean;
     passwordChangedAt: Date | number;
     passwordResetCode: string | undefined;
     passwordResetCodeExpires: Date | number | undefined;
     passwordResetCodeVerify: boolean | undefined;
     image: string;
+    readonly createdAt: Date;
+    readonly updatedAt: Date;
 }
 
 type UsersRole = 'admin' | 'user';
