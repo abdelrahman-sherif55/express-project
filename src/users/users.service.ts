@@ -11,66 +11,59 @@ import sanitization from "../global/utils/sanitization";
 import ApiErrors from "../global/utils/apiErrors";
 
 class UserService {
-    constructor(private readonly refactorService: RefactorService<Users>) {
-    }
+  constructor(private readonly refactorService: RefactorService<Users>) {
+  }
 
-    uploadImage = uploadSingleFile(['image'], 'image');
-    saveImage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-        if (req.file) {
-            const folderPath: string = 'uploads/images/users';
-            if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, {recursive: true});
-            const imgName = `user-${Date.now()}.webp`
-            await sharp(req.file.buffer)
-                .toFormat('webp')
-                .webp({quality: 95})
-                .toFile(`uploads/images/users/${imgName}`)
-            req.body.image = imgName;
+  getAllUsers = this.refactorService.getAll;
+  getUser = this.refactorService.getOne;
+  createUser = this.refactorService.createOne;
+  deleteUser = this.refactorService.deleteOne;
 
-            if (req.params.id) {
-                const user = await usersSchema.findById(req.params.id);
-                if (user && user.image && user.image.startsWith(`${process.env.BASE_URL}`)) {
-                    const image: string = user.image.split('/').pop()!;
-                    this.deleteImage(image)
-                }
-            }
+  updateUser = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const user: Users | null = await usersSchema.findByIdAndUpdate(req.params.id, {
+      name: req.body.name,
+      image: req.body.image,
+      active: req.body.active
+    }, {new: true});
+    if (!user) return next(new ApiErrors(`${req.__('not_found')}`, 404));
+    res.status(200).json({data: sanitization.User(user)});
+  });
+  changePassword = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    const user: Users | null = await usersSchema.findByIdAndUpdate(req.params.id, {
+      password: await bcrypt.hash(req.body.password, 13),
+      passwordChangedAt: Date.now()
+    }, {new: true});
+    if (!user) return next(new ApiErrors(`${req.__('not_found')}`, 404));
+    res.status(200).json({data: sanitization.User(user)});
+  });
+  checkUser = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (req.params.id === req.user._id.toString()) return next(new ApiErrors(`${req.__('allowed_to')}`, 403));
+    next();
+  });
+
+  uploadImage = uploadSingleFile(['image'], 'image');
+  saveImage = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    if (req.file) {
+      const folderPath: string = 'uploads/images/users';
+      if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, {recursive: true});
+      const imgName = `user-${Date.now()}.webp`
+      await sharp(req.file.buffer)
+        .toFormat('webp')
+        .webp({quality: 95})
+        .toFile(`uploads/images/users/${imgName}`)
+      req.body.image = imgName;
+
+      if (req.params.id) {
+        const user = await usersSchema.findById(req.params.id);
+        if (user && user.image && user.image.startsWith(`${process.env.BASE_URL}`)) {
+          const image: string = user.image.split('/').pop()!;
+          this.refactorService.deleteFile(image)
         }
-        next();
-    });
-
-    getAllUsers = this.refactorService.getAll(usersSchema, 'users');
-    createUser = this.refactorService.createOne(usersSchema);
-    getUser = this.refactorService.getOne(usersSchema, 'users');
-    updateUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-        const user: Users | null = await usersSchema.findByIdAndUpdate(req.params.id, {
-            name: req.body.name,
-            image: req.body.image,
-            active: req.body.active
-        }, {new: true});
-        if (!user) return next(new ApiErrors(`${req.__('not_found')}`, 404));
-        res.status(200).json({data: sanitization.User(user)});
-    });
-    deleteUser = this.refactorService.deleteOne(usersSchema, 'images/users');
-    changePassword = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-        const user: Users | null = await usersSchema.findByIdAndUpdate(req.params.id, {
-            password: await bcrypt.hash(req.body.password, 13),
-            passwordChangedAt: Date.now()
-        }, {new: true});
-        if (!user) return next(new ApiErrors(`${req.__('not_found')}`, 404));
-        res.status(200).json({data: sanitization.User(user)});
-    });
-    checkUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
-        if (req.params.id === req.user._id.toString()) return next(new ApiErrors(`${req.__('allowed_to')}`, 403));
-        next();
-    });
-
-    deleteImage(image: string): void {
-        const imagePath: string = `uploads/images/users/${image}`;
-        fs.unlink(imagePath, (err): void => {
-            if (err) console.error(`Error deleting image ${image}: ${err}`);
-            else console.log(`Successfully deleted image ${image}`);
-        });
-    };
+      }
+    }
+    next();
+  });
 }
 
-const usersService = new UserService(new RefactorService);
+const usersService = new UserService(new RefactorService(usersSchema, 'users', 'images/users'));
 export default usersService;

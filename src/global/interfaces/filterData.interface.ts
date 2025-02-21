@@ -1,4 +1,4 @@
 export interface FilterData {
-    category?: any;
-    name?: any;
+  category?: any;
+  name?: any;
 }

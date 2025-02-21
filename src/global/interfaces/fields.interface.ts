@@ -1,4 +1,4 @@
 export interface Fields {
-    name: string;
-    maxCount: number;
+  name: string;
+  maxCount: number;
 }

@@ -2,21 +2,21 @@ import mongoose from 'mongoose';
 import {Examples} from './examples.interface';
 
 const examplesSchema: mongoose.Schema = new mongoose.Schema<Examples>({
-    name: {type: String, required: true, trim: true},
-    cover: String,
-    images: [String]
+  name: {type: String, required: true, trim: true},
+  cover: String,
+  images: [String]
 }, {timestamps: true});
 
 const imageUrl = (document: Examples): void => {
-    if (document.cover) document.cover = `${process.env.BASE_URL}/images/examples/${document.cover}`;
-    if (document.images) document.images = document.images.map((image) => `${process.env.BASE_URL}/images/examples/${image}`);
+  if (document.cover) document.cover = `${process.env.BASE_URL}/images/examples/${document.cover}`;
+  if (document.images) document.images = document.images.map((image) => `${process.env.BASE_URL}/images/examples/${image}`);
 
 };
 
 examplesSchema.post('init', (document: Examples): void => {
-    imageUrl(document);
+  imageUrl(document);
 }).post('save', (document: Examples): void => {
-    imageUrl(document);
+  imageUrl(document);
 });
 
 // examplesSchema.pre<Examples>(/^find/, function (next) {

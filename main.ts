@@ -15,10 +15,10 @@ import mountRoutes from './src';
 const app: express.Application = express();
 
 app.use(cors({
-    origin: ['http://localhost:3000'],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['X-CSRF-Token', 'X-API-KEY', 'Authorization', 'Content-Type'],
-    credentials: true,
+  origin: ['http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['X-CSRF-Token', 'X-API-KEY', 'Authorization', 'Content-Type'],
+  credentials: true,
 }));
 app.use(cookieParser());
 app.use(express.json({limit: '1kb'}));
@@ -32,10 +32,10 @@ dotenv.config();
 const port = process.env.PORT;
 let server: Server;
 i18n.configure({
-    locales: ['en', 'ar'],
-    defaultLocale: 'en',
-    queryParameter: 'lang',
-    directory: path.join(__dirname, './locales')
+  locales: ['en', 'ar'],
+  defaultLocale: 'en',
+  queryParameter: 'lang',
+  directory: path.join(__dirname, './locales')
 })
 app.use(i18n.init);
 DBConnection();
@@ -44,9 +44,9 @@ mountRoutes(app);
 server = app.listen(port, () => console.log(`app is listen on port ${port}`));
 
 process.on('unhandledRejection', (err: Error) => {
-    console.error(`unhandledRejection ${err.name} | ${err.message}`);
-    server.close(() => {
-        console.error('shutting the application down');
-        process.exit(1);
-    });
+  console.error(`unhandledRejection ${err.name} | ${err.message}`);
+  server.close(() => {
+    console.error('shutting the application down');
+    process.exit(1);
+  });
 });
