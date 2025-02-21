@@ -56,7 +56,7 @@ export default class RefactorService<modelType> {
     res.status(200).json({data: document});
   });
   deleteOne = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const document: any = await this.model.findByIdAndDelete(req.params.id);
+    const document: modelType | any = await this.model.findByIdAndDelete(req.params.id);
     if (!document) return next(new ApiErrors(`${req.__('not_found')}`, 404));
     if (document.cover && document.cover.startsWith(`${process.env.BASE_URL}`)) {
       const cover = document.cover.split('/').pop();
