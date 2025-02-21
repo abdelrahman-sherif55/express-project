@@ -77,9 +77,9 @@ export default class RefactorService<modelType> {
     res.status(200).json({data: document});
   });
   removeImage = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const document: modelType | null = await this.model.findByIdAndUpdate(req.params.id, {$pull: {images: req.body.image}}, {new: true});
+    const document: modelType | null = await this.model.findByIdAndUpdate(req.params.id, {$pull: {images: req.params.image}}, {new: true});
     if (!document) return next(new ApiErrors(`${req.__('not_found')}`, 404));
-    this.deleteFile(req.body.image);
+    this.deleteFile(req.params.image);
     res.status(200).json({data: document});
   });
 
