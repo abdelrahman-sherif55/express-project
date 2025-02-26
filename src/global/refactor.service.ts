@@ -14,16 +14,18 @@ export default class RefactorService<modelType> {
   getAll = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     let filterData: FilterData = {};
     let searchLength: number = 0;
+    let flagSearch: boolean = false;
 
     if (req.filterData) filterData = req.filterData;
 
     if (req.query) {
+      flagSearch = true;
       const searchResult: Features = new Features(this.model.find(filterData), req.query).filter().search(this.modelName);
       const searchData: modelType[] = await searchResult.mongooseQuery;
       searchLength = searchData.length;
     }
 
-    const documentCount: number = searchLength || await this.model.find(filterData).countDocuments();
+    const documentCount: number = flagSearch ? searchLength : await this.model.find(filterData).countDocuments();
     const apiFeatures: Features = new Features(this.model.find(filterData), req.query).filter().sort().limitFields().search(this.modelName).pagination(documentCount);
     const {mongooseQuery, paginationResult} = apiFeatures;
     let documents: modelType[] | any[] = await mongooseQuery;
