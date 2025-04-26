@@ -9,7 +9,7 @@ import helmet from 'helmet';
 import ExpressMongoSanitize from 'express-mongo-sanitize';
 import cookieParser from 'cookie-parser';
 import i18n from "i18n";
-import DBConnection from './src/global/config/database';
+import DBConnection from './src/mongo/mongoDB';
 import mountRoutes from './src';
 
 const app: express.Application = express();

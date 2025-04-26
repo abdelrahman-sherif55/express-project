@@ -1,6 +1,6 @@
 import {RequestHandler} from "express";
 import {body, param} from "express-validator";
-import validatorMiddleware from "../global/middlewares/validator.middleware";
+import validatorMiddleware from "../common/middlewares/validator.middleware";
 import usersModel from "./users.schema";
 
 class UsersValidation {

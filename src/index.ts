@@ -1,9 +1,10 @@
-import './global/interfaces';
+import './common/interfaces';
 import {Application, NextFunction, Request, Response} from "express";
 import csurf from "csurf";
-import globalErrors from "./global/middlewares/globalErrors.middleware";
-import verifyPaymob from "./global/middlewares/verifyPaymob.middleware";
-import ApiErrors from "./global/utils/apiErrors";
+import globalErrors from "./common/middlewares/global-errors.middleware";
+import verifyPaymob from "./common/middlewares/verify-paymob.middleware";
+import ApiErrors from "./common/utils/api-errors.util";
+import {HttpStatusCode} from "./common/enums/status-code.enum";
 import googleRoute from "./google/google.Route";
 import authRoute from "./auth/auth.Route";
 import usersRoute from "./users/users.Route";
@@ -13,9 +14,9 @@ import examplesRoute from "./examples/examples.Route";
 const mountRoutes = (app: Application): void => {
   app.post('/paymob-webhook', verifyPaymob, (req: Request, res: Response, next: NextFunction) => {
     if (req.body.obj.success === true) {
-      res.redirect(307, `/api/v1/${req.body.obj.payment_key_claims.extra.routeName}`);
+      res.redirect(HttpStatusCode.TEMPORARY_REDIRECT, `/api/v1/${req.body.obj.payment_key_claims.extra.routeName}`);
     } else {
-      return next(new ApiErrors('invalid payment', 403));
+      return next(new ApiErrors('invalid payment', HttpStatusCode.FORBIDDEN));
     }
   });
   app.use(
@@ -37,7 +38,7 @@ const mountRoutes = (app: Application): void => {
   app.use('/api/v1/profile', profileRoute);
   app.use('/api/v1/examples', examplesRoute);
   app.all('*', (req: Request, res: Response, next: NextFunction) => {
-    next(new ApiErrors(`The router ${req.originalUrl} is not found`, 404))
+    next(new ApiErrors(`The router ${req.originalUrl} is not found`, HttpStatusCode.NOT_FOUND));
   });
   app.use(globalErrors);
 };

@@ -5,13 +5,14 @@ import sharp from 'sharp';
 import bcrypt from 'bcryptjs';
 import usersSchema from "../users/users.schema";
 import {Users} from "../users/users.interface";
-import RefactorService from "../global/refactor.service";
-import {uploadSingleFile} from '../global/middlewares/upload.middleware';
-import tokens from '../global/utils/createToken';
-import sanitization from "../global/utils/sanitization";
+import CrudService from "../common/crud.service";
+import {uploadSingleFile} from '../common/middlewares/upload.middleware';
+import tokens from '../common/utils/create-token.util';
+import sanitization from "../common/utils/sanitization.util";
+import {HttpStatusCode} from "../common/enums/status-code.enum";
 
 class ProfileService {
-  constructor(private readonly refactorService: RefactorService<Users>) {
+  constructor(private readonly refactorService: CrudService<Users>) {
   }
 
   getProfile = this.refactorService.getOne;
@@ -20,14 +21,14 @@ class ProfileService {
       name: req.body.name,
       image: req.body.image,
     }, {new: true});
-    res.status(200).json({data: sanitization.User(user!)});
+    res.status(HttpStatusCode.OK).json({data: sanitization.User(user!)});
   });
   createPassword = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const user: Users | null = await usersSchema.findOneAndUpdate({_id: req.user?._id, hasPassword: false}, {
       password: await bcrypt.hash(req.body.password, 13),
       hasPassword: true
     }, {new: true});
-    res.status(200).json({data: sanitization.User(user!)});
+    res.status(HttpStatusCode.OK).json({data: sanitization.User(user!)});
   });
   changePassword = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const user: Users | null = await usersSchema.findByIdAndUpdate(req.user?._id, {
@@ -35,7 +36,7 @@ class ProfileService {
       passwordChangedAt: Date.now()
     }, {new: true});
     const token = tokens.createToken(user?._id, user?.role!);
-    res.status(200).json({token, data: sanitization.User(user!)});
+    res.status(HttpStatusCode.OK).json({token, data: sanitization.User(user!)});
   });
 
   setUserId = (req: Request, res: Response, next: NextFunction): void => {
@@ -65,5 +66,5 @@ class ProfileService {
   });
 }
 
-const profileService = new ProfileService(new RefactorService(usersSchema, 'users', 'images/users'));
+const profileService = new ProfileService(new CrudService(usersSchema, 'users', 'images/users'));
 export default profileService;

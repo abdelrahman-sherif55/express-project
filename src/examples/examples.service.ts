@@ -4,22 +4,22 @@ import asyncHandler from "express-async-handler";
 import sharp from "sharp";
 import examplesSchema from "./examples.schema";
 import {Examples} from "./examples.interface";
-import {FilterData} from "../global/interfaces/filterData.interface";
-import RefactorService from "../global/refactor.service";
-import {uploadMultiFiles, uploadSingleFile} from "../global/middlewares/upload.middleware";
+import {FilterData} from "../common/interfaces/filter-data.interface";
+import CrudService from "../common/crud.service";
+import {uploadMultiFiles, uploadSingleFile} from "../common/middlewares/upload.middleware";
 
 class ExamplesService {
-  constructor(private readonly refactorService: RefactorService<Examples>) {
+  constructor(private readonly crudService: CrudService<Examples>) {
   }
 
-  getExamples = this.refactorService.getAll;
-  getExamplesList = this.refactorService.getAllList;
-  getExample = this.refactorService.getOne;
-  createExample = this.refactorService.createOne;
-  updateExample = this.refactorService.updateOne;
-  deleteExample = this.refactorService.deleteOne;
-  addImages = this.refactorService.addImages;
-  deleteImage = this.refactorService.removeImage;
+  getExamples = this.crudService.getAll;
+  getExamplesList = this.crudService.getAllList;
+  getExample = this.crudService.getOne;
+  createExample = this.crudService.createOne;
+  updateExample = this.crudService.updateOne;
+  deleteExample = this.crudService.deleteOne;
+  addImages = this.crudService.addImages;
+  deleteImage = this.crudService.removeImage;
 
   filterExamples = (req: Request, res: Response, next: NextFunction): void => {
     const filterData: FilterData = {};
@@ -95,5 +95,5 @@ class ExamplesService {
   };
 }
 
-const examplesService = new ExamplesService(new RefactorService(examplesSchema, 'examples', 'images/examples'));
+const examplesService = new ExamplesService(new CrudService(examplesSchema, 'examples', 'images/examples'));
 export default examplesService;

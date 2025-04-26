@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import passport from "passport";
 import {Strategy as GoogleStrategy} from "passport-google-oauth20";
 import usersSchema from "../users/users.schema";
-import tokens from "../global/utils/createToken";
+import tokens from "../common/utils/create-token.util";
 import {Users} from "../users/users.interface";
 
 dotenv.config();

@@ -1,7 +1,7 @@
 import {RequestHandler} from "express";
 import {body} from "express-validator";
 import bcrypt from 'bcryptjs';
-import validatorMiddleware from "../global/middlewares/validator.middleware";
+import validatorMiddleware from "../common/middlewares/validator.middleware";
 
 class ProfileValidation {
   updateProfile: RequestHandler[] = [

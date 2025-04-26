@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import {EmailOptions, SendEmailOptions} from "../interfaces/email.interface";
 
-const sendEmail = async (options: EmailOptions): Promise<void> => {
+const sendEmailUtil = async (options: EmailOptions): Promise<void> => {
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
     port: 465,
@@ -28,4 +28,4 @@ const sendEmail = async (options: EmailOptions): Promise<void> => {
   await transporter.sendMail(emailOptions);
 };
 
-export default sendEmail;
+export default sendEmailUtil;

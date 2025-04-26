@@ -1,6 +1,6 @@
 import {Request} from 'express';
 import multer from 'multer';
-import ApiErrors from '../utils/apiErrors';
+import ApiErrors from '../utils/api-errors.util';
 import {Fields} from "../interfaces/fields.interface";
 
 const uploadOptions = (fileTypes: string[]): multer.Multer => {

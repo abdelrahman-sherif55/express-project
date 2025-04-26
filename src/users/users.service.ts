@@ -5,13 +5,14 @@ import sharp from 'sharp';
 import bcrypt from 'bcryptjs';
 import usersSchema from "./users.schema";
 import {Users} from "./users.interface";
-import RefactorService from "../global/refactor.service";
-import {uploadSingleFile} from '../global/middlewares/upload.middleware';
-import sanitization from "../global/utils/sanitization";
-import ApiErrors from "../global/utils/apiErrors";
+import CrudService from "../common/crud.service";
+import {uploadSingleFile} from '../common/middlewares/upload.middleware';
+import sanitization from "../common/utils/sanitization.util";
+import ApiErrors from "../common/utils/api-errors.util";
+import {HttpStatusCode} from "../common/enums/status-code.enum";
 
 class UserService {
-  constructor(private readonly refactorService: RefactorService<Users>) {
+  constructor(private readonly refactorService: CrudService<Users>) {
   }
 
   getAllUsers = this.refactorService.getAll;
@@ -25,16 +26,16 @@ class UserService {
       image: req.body.image,
       active: req.body.active
     }, {new: true});
-    if (!user) return next(new ApiErrors(`${req.__('not_found')}`, 404));
-    res.status(200).json({data: sanitization.User(user)});
+    if (!user) return next(new ApiErrors(`${req.__('not_found')}`, HttpStatusCode.NOT_FOUND));
+    res.status(HttpStatusCode.OK).json({data: sanitization.User(user)});
   });
   changePassword = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const user: Users | null = await usersSchema.findByIdAndUpdate(req.params.id, {
       password: await bcrypt.hash(req.body.password, 13),
       passwordChangedAt: Date.now()
     }, {new: true});
-    if (!user) return next(new ApiErrors(`${req.__('not_found')}`, 404));
-    res.status(200).json({data: sanitization.User(user)});
+    if (!user) return next(new ApiErrors(`${req.__('not_found')}`, HttpStatusCode.NOT_FOUND));
+    res.status(HttpStatusCode.OK).json({data: sanitization.User(user)});
   });
   checkUser = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (req.params.id === req.user._id.toString()) return next(new ApiErrors(`${req.__('allowed_to')}`, 403));
@@ -65,5 +66,5 @@ class UserService {
   });
 }
 
-const usersService = new UserService(new RefactorService(usersSchema, 'users', 'images/users'));
+const usersService = new UserService(new CrudService(usersSchema, 'users', 'images/users'));
 export default usersService;

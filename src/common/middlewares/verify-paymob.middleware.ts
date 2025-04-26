@@ -1,7 +1,7 @@
 import {NextFunction, Request, Response} from "express";
 import expressAsyncHandler from "express-async-handler";
 import crypto from "crypto";
-import ApiErrors from "../utils/apiErrors";
+import ApiErrors from "../utils/api-errors.util";
 
 const verifyPaymob = expressAsyncHandler((req: Request, res: Response, next: NextFunction) => {
   if (req.body.type == "TRANSACTION") {
