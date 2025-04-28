@@ -7,19 +7,61 @@ import {Examples} from "./examples.interface";
 import {FilterData} from "../common/interfaces/filter-data.interface";
 import CrudService from "../common/crud.service";
 import {uploadMultiFiles, uploadSingleFile} from "../common/middlewares/upload.middleware";
+import {FolderPath, ModelName} from "../common/constants/common.constant";
+import {HttpStatusCode} from "../common/enums/status-code.enum";
+import ApiErrors from "../common/utils/api-errors.util";
+import sanitization from "../common/utils/sanitization.util";
 
 class ExamplesService {
   constructor(private readonly crudService: CrudService<Examples>) {
   }
 
-  getExamples = this.crudService.getAll;
-  getExamplesList = this.crudService.getAllList;
-  getExample = this.crudService.getOne;
-  createExample = this.crudService.createOne;
-  updateExample = this.crudService.updateOne;
-  deleteExample = this.crudService.deleteOne;
-  addImages = this.crudService.addImages;
-  deleteImage = this.crudService.removeImage;
+  getExamples = asyncHandler(async (req: Request, res: Response) => {
+    const data = await this.crudService.getAll(req);
+    res.status(HttpStatusCode.OK).json({
+      ...data,
+      data: data.data.map((example: Examples) => sanitization.Example(example))
+    });
+  });
+  getExamplesList = asyncHandler(async (req: Request, res: Response) => {
+    const data = await this.crudService.getAllList(req);
+    res.status(HttpStatusCode.OK).json({
+      ...data,
+      data: data.data.map((example: Examples) => sanitization.Example(example))
+    });
+  });
+  getExample = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const example: Examples | null = await this.crudService.getOne(req);
+    if (!example) return next(new ApiErrors(`${req.__('not_found')}`, HttpStatusCode.NOT_FOUND));
+    res.status(HttpStatusCode.OK).json({data: sanitization.Example(example)});
+  });
+  createExample = asyncHandler(async (req: Request, res: Response) => {
+    const example: Examples = await this.crudService.createOne(req);
+    res.status(HttpStatusCode.CREATED).json({data: sanitization.Example(example)});
+  });
+  updateExample = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const example: Examples | null = await this.crudService.updateOne(req);
+    if (!example) return next(new ApiErrors(`${req.__('not_found')}`, HttpStatusCode.NOT_FOUND));
+    res.status(HttpStatusCode.OK).json({data: sanitization.Example(example)});
+  });
+  deleteExample = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const example: Examples | null = await this.crudService.deleteOne(req);
+    if (!example) return next(new ApiErrors(`${req.__('not_found')}`, HttpStatusCode.NOT_FOUND));
+    if (example.cover) this.crudService.deleteFile(example.cover)
+    if (example.images) this.crudService.deleteFiles(example.images);
+    res.status(HttpStatusCode.OK).json({data: sanitization.Example(example)});
+  });
+  addImages = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const example: Examples | null = await this.crudService.addImages(req);
+    if (!example) return next(new ApiErrors(`${req.__('not_found')}`, HttpStatusCode.NOT_FOUND));
+    res.status(HttpStatusCode.OK).json({data: sanitization.Example(example)});
+  });
+  deleteImage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const example: Examples | null = await this.crudService.removeImage(req);
+    if (!example) return next(new ApiErrors(`${req.__('not_found')}`, HttpStatusCode.NOT_FOUND));
+    this.crudService.deleteFile(req.params.image);
+    res.status(HttpStatusCode.OK).json({data: sanitization.Example(example)});
+  });
 
   filterExamples = (req: Request, res: Response, next: NextFunction): void => {
     const filterData: FilterData = {};
@@ -29,22 +71,19 @@ class ExamplesService {
 
   saveImages = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (req.files) {
-      const folderPath: string = 'uploads/images/examples';
+      const folderPath: string = FolderPath.EXAMPLES;
       if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, {recursive: true});
       if (req.files.cover) {
         const imageCoverFileName: string = `Example-${req.body.name_en}-${Date.now()}-cover.webp`;
         await sharp(req.files.cover[0].buffer)
           .toFormat('webp')
           .webp({quality: 95})
-          .toFile(`uploads/images/examples/${imageCoverFileName}`);
+          .toFile(`${FolderPath.EXAMPLES}/${imageCoverFileName}`);
         req.body.cover = imageCoverFileName;
 
         if (req.params.id) {
-          const example = await examplesSchema.findById(req.params.id);
-          if (example?.cover) {
-            const image: string = example.cover.split('/').pop()!;
-            this.deleteUploadedImage(image)
-          }
+          const example: Examples | null = await examplesSchema.findById(req.params.id);
+          if (example?.cover) this.crudService.deleteFile(example.cover)
         }
       }
       if (req.files.images) {
@@ -54,7 +93,7 @@ class ExamplesService {
           await sharp(img.buffer)
             .toFormat('webp')
             .webp({quality: 95})
-            .toFile(`uploads/images/examples/${imageName}`);
+            .toFile(`${FolderPath.EXAMPLES}/${imageName}`);
           req.body.images.push(imageName);
         }));
       }
@@ -63,21 +102,18 @@ class ExamplesService {
   });
   saveImage = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (req.file) {
-      const folderPath: string = 'uploads/images/examples';
+      const folderPath: string = FolderPath.EXAMPLES;
       if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, {recursive: true});
       const imageName = `Example-${Date.now()}.webp`;
       await sharp(req.file.buffer)
         .toFormat('webp')
         .webp({quality: 95})
-        .toFile(`uploads/images/examples/${imageName}`);
+        .toFile(`${FolderPath.EXAMPLES}/${imageName}`);
       req.body.image = imageName;
 
       if (req.params.id) {
-        const example = await examplesSchema.findById(req.params.id);
-        if (example?.cover) {
-          const image: string = example.cover.split('/').pop()!;
-          this.deleteUploadedImage(image)
-        }
+        const example: Examples | null = await examplesSchema.findById(req.params.id);
+        if (example?.cover) this.crudService.deleteFile(example.cover)
       }
     }
     next();
@@ -86,14 +122,7 @@ class ExamplesService {
   uploadImage = uploadSingleFile(['image'], 'cover')
   uploadImages = uploadMultiFiles(['image'], [{name: 'cover', maxCount: 1}, {name: 'images', maxCount: 5}]);
 
-  deleteUploadedImage(image: string): void {
-    const imagePath: string = `uploads/images/examples/${image}`;
-    fs.unlink(imagePath, (err): void => {
-      if (err) console.error(`Error deleting image ${image}: ${err}`);
-      else console.log(`Successfully deleted image ${image}`);
-    });
-  };
 }
 
-const examplesService = new ExamplesService(new CrudService(examplesSchema, 'examples', 'images/examples'));
+const examplesService = new ExamplesService(new CrudService(examplesSchema, ModelName.EXAMPLES, FolderPath.EXAMPLES));
 export default examplesService;

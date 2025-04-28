@@ -1,18 +1,14 @@
 import fs from "fs";
-import {NextFunction, Request, Response} from 'express';
-import asyncHandler from "express-async-handler";
+import {Request} from 'express';
 import mongoose from "mongoose";
-import ApiErrors from "./utils/api-errors.util";
 import Features from "./utils/features.util";
-import sanitization from "./utils/sanitization.util";
 import {FilterData} from "./interfaces/filter-data.interface";
-import {HttpStatusCode} from "./enums/status-code.enum";
 
 export default class CrudService<modelType> {
   constructor(private readonly model: mongoose.Model<modelType>, private readonly modelName: string, private readonly folderPath?: string) {
   }
 
-  getAll = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  getAll = async (req: Request) => {
     let filterData: FilterData = {};
     let searchLength: number = 0;
     let flagSearch: boolean = false;
@@ -29,65 +25,45 @@ export default class CrudService<modelType> {
     const documentCount: number = flagSearch ? searchLength : await this.model.find(filterData).countDocuments();
     const apiFeatures: Features = new Features(this.model.find(filterData), req.query).filter().sort().limitFields().search(this.modelName).pagination(documentCount);
     const {mongooseQuery, paginationResult} = apiFeatures;
-    let documents: modelType[] | any[] = await mongooseQuery;
-    if (this.modelName === 'users') documents = documents.map(user => sanitization.User(user));
-    res.status(HttpStatusCode.OK).json({length: documents.length, pagination: paginationResult, data: documents});
-  });
-  getAllList = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+    let documents: modelType[] = await mongooseQuery;
+    return {length: documents.length, pagination: paginationResult, data: documents};
+  };
+  getAllList = async (req: Request) => {
     let filterData: FilterData = {};
     let apiFeatures: Features;
     if (req.filterData) filterData = req.filterData;
     apiFeatures = new Features(this.model.find(filterData), req.query).filter().sort().limitFields();
     const {mongooseQuery} = apiFeatures;
     const documents: modelType[] = await mongooseQuery;
-    res.status(HttpStatusCode.OK).json({length: documents.length, data: documents});
-  });
-  getOne = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    let document: modelType | any = await this.model.findById(req.params.id);
-    if (!document) return next(new ApiErrors(`${req.__('not_found')}`, 404));
-    if (this.modelName === 'users') document = sanitization.User(document);
-    res.status(HttpStatusCode.OK).json({data: document});
-  });
-  createOne = asyncHandler(async (req: Request, res: Response): Promise<void> => {
-    let document: modelType | any = await this.model.create(req.body);
-    if (this.modelName === 'users') document = sanitization.User(document);
-    res.status(HttpStatusCode.CREATED).json({data: document});
-  });
-  updateOne = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    return {length: documents.length, data: documents};
+  };
+  getOne = async (req: Request) => {
+    const document: modelType | null = await this.model.findById(req.params.id);
+    return document;
+  };
+  createOne = async (req: Request) => {
+    const document: modelType = await this.model.create(req.body);
+    return document;
+  };
+  updateOne = async (req: Request) => {
     const document: modelType | null = await this.model.findByIdAndUpdate(req.params.id, req.body, {new: true});
-    if (!document) return next(new ApiErrors(`${req.__('not_found')}`, 404));
-    res.status(HttpStatusCode.OK).json({data: document});
-  });
-  deleteOne = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const document: modelType | any = await this.model.findByIdAndDelete(req.params.id);
-    if (!document) return next(new ApiErrors(`${req.__('not_found')}`, 404));
-    if (document.cover && document.cover.startsWith(`${process.env.BASE_URL}`)) {
-      const cover = document.cover.split('/').pop();
-      this.deleteFile(cover)
-    } else if (document.image && document.image.startsWith(`${process.env.BASE_URL}`)) {
-      const image = document.image.split('/').pop();
-      this.deleteFile(image)
-    }
-    if (document.images) {
-      const images: string[] = document.images.map((image: string) => image.split('/').pop());
-      this.deleteFiles(images)
-    }
-    res.status(HttpStatusCode.NO_CONTENT).json();
-  });
-  addImages = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    return document;
+  };
+  deleteOne = async (req: Request) => {
+    const document: modelType | null = await this.model.findByIdAndDelete(req.params.id);
+    return document;
+  };
+  addImages = async (req: Request) => {
     const document: modelType | null = await this.model.findByIdAndUpdate(req.params.id, {$addToSet: {images: req.body.images}}, {new: true});
-    if (!document) return next(new ApiErrors(`${req.__('not_found')}`, 404));
-    res.status(HttpStatusCode.OK).json({data: document});
-  });
-  removeImage = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    return document;
+  };
+  removeImage = async (req: Request) => {
     const document: modelType | null = await this.model.findByIdAndUpdate(req.params.id, {$pull: {images: req.params.image}}, {new: true});
-    if (!document) return next(new ApiErrors(`${req.__('not_found')}`, 404));
-    this.deleteFile(req.params.image);
-    res.status(HttpStatusCode.OK).json({data: document});
-  });
+    return document;
+  };
 
   deleteFile(file: string): void {
-    const filePath: string = `uploads/${this.folderPath}/${file}`;
+    const filePath: string = `${this.folderPath}/${file}`;
     fs.unlink(filePath, (err): void => {
       if (err) console.error(`Error deleting file ${file}: ${err}`);
       else console.log(`Successfully deleted file ${file}`);
@@ -96,7 +72,7 @@ export default class CrudService<modelType> {
 
   deleteFiles(files: string[]): void {
     files.forEach((file: string): void => {
-      const filePath: string = `uploads/${this.folderPath}/${file}`;
+      const filePath: string = `${this.folderPath}/${file}`;
       fs.unlink(filePath, (err): void => {
         if (err) console.error(`Error deleting file ${file}: ${err}`);
         else console.log(`Successfully deleted file ${file}`);

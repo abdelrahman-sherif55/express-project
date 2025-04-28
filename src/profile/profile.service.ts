@@ -10,12 +10,16 @@ import {uploadSingleFile} from '../common/middlewares/upload.middleware';
 import tokens from '../common/utils/create-token.util';
 import sanitization from "../common/utils/sanitization.util";
 import {HttpStatusCode} from "../common/enums/status-code.enum";
+import {FolderPath, ModelName} from "../common/constants/common.constant";
 
 class ProfileService {
-  constructor(private readonly refactorService: CrudService<Users>) {
+  constructor(private readonly crudService: CrudService<Users>) {
   }
 
-  getProfile = this.refactorService.getOne;
+  getProfile = asyncHandler(async (req: Request, res: Response) => {
+    const user: Users | null = await this.crudService.getOne(req);
+    res.status(HttpStatusCode.OK).json({data: sanitization.User(user!)});
+  });
   updateProfile = asyncHandler(async (req: Request, res: Response): Promise<void> => {
     const user: Users | null = await usersSchema.findByIdAndUpdate(req.user?._id, {
       name: req.body.name,
@@ -35,7 +39,7 @@ class ProfileService {
       password: await bcrypt.hash(req.body.password, 13),
       passwordChangedAt: Date.now()
     }, {new: true});
-    const token = tokens.createToken(user?._id, user?.role!);
+    const token: string = tokens.createToken(user?._id, user?.role!);
     res.status(HttpStatusCode.OK).json({token, data: sanitization.User(user!)});
   });
 
@@ -47,24 +51,21 @@ class ProfileService {
   uploadImage = uploadSingleFile(['image'], 'image');
   saveImage = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     if (req.file) {
-      const folderPath: string = 'uploads/images/users';
+      const folderPath: string = FolderPath.USERS;
       if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, {recursive: true});
       const imgName = `user-${Date.now()}.webp`;
       await sharp(req.file.buffer)
         .toFormat('webp')
         .webp({quality: 95})
-        .toFile(`uploads/images/users/${imgName}`);
+        .toFile(`${folderPath}/${imgName}`);
       req.body.image = imgName;
 
-      const user = req.user;
-      if (user.image && user.image.startsWith(`${process.env.BASE_URL}`)) {
-        const image: string = user.image.split('/').pop();
-        this.refactorService.deleteFile(image);
-      }
+      const user: Users = req.user;
+      if (user.image && user.image.startsWith('user')) this.crudService.deleteFile(user.image);
     }
     next();
   });
 }
 
-const profileService = new ProfileService(new CrudService(usersSchema, 'users', 'images/users'));
+const profileService = new ProfileService(new CrudService(usersSchema, ModelName.USERS, FolderPath.USERS));
 export default profileService;

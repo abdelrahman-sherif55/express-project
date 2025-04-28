@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import bcrypt from 'bcryptjs';
 import {Users} from './users.interface';
+import {ModelName} from "../common/constants/common.constant";
 
 const usersSchema: mongoose.Schema = new mongoose.Schema<Users>({
   email: {type: String, unique: true, required: true},
@@ -23,13 +24,4 @@ usersSchema.pre<Users>('save', async function (next: mongoose.CallbackWithoutRes
   next();
 });
 
-const imageUrl = (document: Users): void => {
-  if (document.image && document.image.startsWith(`user`))
-    document.image = `${process.env.BASE_URL}/images/users/${document.image}`;
-};
-
-usersSchema
-  .post('init', (document: Users) => imageUrl(document))
-  .post('save', (document: Users) => imageUrl(document));
-
-export default mongoose.model<Users>('users', usersSchema);
+export default mongoose.model<Users>(ModelName.USERS, usersSchema);

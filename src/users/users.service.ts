@@ -10,16 +10,28 @@ import {uploadSingleFile} from '../common/middlewares/upload.middleware';
 import sanitization from "../common/utils/sanitization.util";
 import ApiErrors from "../common/utils/api-errors.util";
 import {HttpStatusCode} from "../common/enums/status-code.enum";
+import {FolderPath, ModelName} from "../common/constants/common.constant";
 
 class UserService {
-  constructor(private readonly refactorService: CrudService<Users>) {
+  constructor(private readonly crudService: CrudService<Users>) {
   }
 
-  getAllUsers = this.refactorService.getAll;
-  getUser = this.refactorService.getOne;
-  createUser = this.refactorService.createOne;
-  deleteUser = this.refactorService.deleteOne;
-
+  getAllUsers = asyncHandler(async (req: Request, res: Response) => {
+    const data = await this.crudService.getAll(req);
+    res.status(HttpStatusCode.OK).json({
+      ...data,
+      data: data.data.map((user: Users) => sanitization.User(user))
+    });
+  });
+  getUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const user: Users | null = await this.crudService.getOne(req);
+    if (!user) return next(new ApiErrors(`${req.__('not_found')}`, HttpStatusCode.NOT_FOUND));
+    res.status(HttpStatusCode.OK).json({data: sanitization.User(user)});
+  });
+  createUser = asyncHandler(async (req: Request, res: Response) => {
+    const user: Users = await this.crudService.createOne(req);
+    res.status(HttpStatusCode.CREATED).json({data: sanitization.User(user)});
+  });
   updateUser = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const user: Users | null = await usersSchema.findByIdAndUpdate(req.params.id, {
       name: req.body.name,
@@ -27,6 +39,12 @@ class UserService {
       active: req.body.active
     }, {new: true});
     if (!user) return next(new ApiErrors(`${req.__('not_found')}`, HttpStatusCode.NOT_FOUND));
+    res.status(HttpStatusCode.OK).json({data: sanitization.User(user)});
+  });
+  deleteUser = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
+    const user: Users | null = await this.crudService.deleteOne(req);
+    if (!user) return next(new ApiErrors(`${req.__('not_found')}`, HttpStatusCode.NOT_FOUND));
+    if (user.image && user.image.startsWith('user')) this.crudService.deleteFile(user.image)
     res.status(HttpStatusCode.OK).json({data: sanitization.User(user)});
   });
   changePassword = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -38,33 +56,30 @@ class UserService {
     res.status(HttpStatusCode.OK).json({data: sanitization.User(user)});
   });
   checkUser = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    if (req.params.id === req.user._id.toString()) return next(new ApiErrors(`${req.__('allowed_to')}`, 403));
+    if (req.params.id === req.user._id.toString()) return next(new ApiErrors(`${req.__('allowed_to')}`, HttpStatusCode.FORBIDDEN));
     next();
   });
 
   uploadImage = uploadSingleFile(['image'], 'image');
   saveImage = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (req.file) {
-      const folderPath: string = 'uploads/images/users';
+      const folderPath: string = FolderPath.USERS;
       if (!fs.existsSync(folderPath)) fs.mkdirSync(folderPath, {recursive: true});
       const imgName = `user-${Date.now()}.webp`
       await sharp(req.file.buffer)
         .toFormat('webp')
         .webp({quality: 95})
-        .toFile(`uploads/images/users/${imgName}`)
+        .toFile(`${folderPath}/${imgName}`)
       req.body.image = imgName;
 
       if (req.params.id) {
-        const user = await usersSchema.findById(req.params.id);
-        if (user && user.image && user.image.startsWith(`${process.env.BASE_URL}`)) {
-          const image: string = user.image.split('/').pop()!;
-          this.refactorService.deleteFile(image)
-        }
+        const user: Users | null = await usersSchema.findById(req.params.id);
+        if (user && user.image && user.image.startsWith('user')) this.crudService.deleteFile(user.image);
       }
     }
     next();
   });
 }
 
-const usersService = new UserService(new CrudService(usersSchema, 'users', 'images/users'));
+const usersService = new UserService(new CrudService(usersSchema, ModelName.USERS, FolderPath.USERS));
 export default usersService;

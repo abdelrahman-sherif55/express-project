@@ -5,7 +5,6 @@ import globalErrors from "./common/middlewares/global-errors.middleware";
 import verifyPaymob from "./common/middlewares/verify-paymob.middleware";
 import ApiErrors from "./common/utils/api-errors.util";
 import {HttpStatusCode} from "./common/enums/status-code.enum";
-import googleRoute from "./google/google.Route";
 import authRoute from "./auth/auth.Route";
 import usersRoute from "./users/users.Route";
 import profileRoute from "./profile/profile.Route";
@@ -32,7 +31,7 @@ const mountRoutes = (app: Application): void => {
     res.cookie('_coo_123', req.csrfToken());
     next();
   });
-  app.use('/auth/google', googleRoute);
+  // app.use('/auth/google', googleRoute);
   app.use('/api/v1/auth', authRoute);
   app.use('/api/v1/users', usersRoute);
   app.use('/api/v1/profile', profileRoute);
