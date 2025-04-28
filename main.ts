@@ -11,6 +11,7 @@ import cookieParser from 'cookie-parser';
 import i18n from "i18n";
 import DBConnection from './src/mongo/mongoDB';
 import mountRoutes from './src';
+import {xssSanitizeMiddleware} from "./src/common/middlewares/xss.middleware";
 
 const app: express.Application = express();
 
@@ -22,6 +23,7 @@ app.use(cors({
 }));
 app.use(cookieParser());
 app.use(express.json({limit: '1kb'}));
+app.use(xssSanitizeMiddleware());
 app.use(compression());
 app.use(ExpressMongoSanitize());
 app.use(helmet({crossOriginResourcePolicy: {policy: 'cross-origin'}}));
