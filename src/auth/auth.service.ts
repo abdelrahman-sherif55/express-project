@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 import Jwt from 'jsonwebtoken';
 import usersSchema from "../users/users.schema";
 import ApiErrors from "../common/utils/api-errors.util";
-import sendEmailUtil from "../common/utils/send-email.util";
+import sendEmail from "../common/utils/send-email.util";
 import {Users} from "../users/users.interface";
 import tokens from "../common/utils/create-token.util";
 import {HttpStatusCode} from "../common/enums/status-code.enum";
@@ -49,11 +49,10 @@ class AuthService {
     user.passwordResetCode = crypto.createHash('sha256').update(resetCode).digest('hex');
     user.passwordResetCodeExpires = Date.now() + (10 * 60 * 1000);
     user.passwordResetCodeVerify = false;
-    if (user.image && user.image.startsWith(`${process.env.BASE_URL}`)) user.image = user.image.split('/').pop()!;
 
     const message: string = `Your Reset Password Code is "${resetCode}"`;
     try {
-      await sendEmailUtil({email: user.email, subject: 'Forget Password', message});
+      await sendEmail({email: user.email, subject: 'Forget Password', message});
       await user.save({validateModifiedOnly: true});
     } catch (err: any) {
       console.log(err);
@@ -81,7 +80,6 @@ class AuthService {
     if (!user)
       return next(new ApiErrors(`${req.__('check_code_valid')}`, HttpStatusCode.BAD_REQUEST));
     user.passwordResetCodeVerify = true;
-    if (user.image && user.image.startsWith(`${process.env.BASE_URL}`)) user.image = user.image.split('/').pop()!;
     await user.save({validateModifiedOnly: true});
     res.status(HttpStatusCode.OK).json({success: true});
   });
@@ -95,7 +93,6 @@ class AuthService {
     user.passwordResetCodeExpires = undefined;
     user.passwordResetCodeVerify = undefined;
     user.passwordChangedAt = Date.now();
-    if (user.image && user.image.startsWith(`${process.env.BASE_URL}`)) user.image = user.image.split('/').pop()!;
     await user.save({validateModifiedOnly: true});
 
     res.clearCookie('reset', {
