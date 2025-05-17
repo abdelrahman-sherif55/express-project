@@ -22,6 +22,7 @@ export const statusNames: Record<HttpStatusCode, string> = {
   [HttpStatusCode.REQUEST_TIMEOUT]: 'Request Timeout',
   [HttpStatusCode.CONFLICT]: 'Conflict',
   [HttpStatusCode.GONE]: 'Gone',
+  [HttpStatusCode.CONTENT_TOO_LARGE]: 'Content Too Large',
   [HttpStatusCode.IM_A_TEAPOT]: "I'm a Teapot",
   [HttpStatusCode.UNPROCESSABLE_ENTITY]: 'Unprocessable Entity',
   [HttpStatusCode.TOO_MANY_REQUESTS]: 'Too Many Requests',

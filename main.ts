@@ -37,6 +37,9 @@ i18n.configure({
   locales: ['en', 'ar'],
   defaultLocale: 'en',
   queryParameter: 'lang',
+  autoReload: true,
+  updateFiles: false,
+  objectNotation: true,
   directory: path.join(__dirname, './locales')
 })
 app.use(i18n.init);
