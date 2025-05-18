@@ -6,8 +6,10 @@ import usersModel from "../users/users.schema";
 class AuthValidation {
   signup: RequestHandler[] = [
     body('name')
-      .notEmpty().withMessage((val, {req}) => req.__('validation_field'))
-      .isLength({min: 2, max: 50}).withMessage((val, {req}) => req.__('validation_length_short')),
+      .notEmpty()
+      .withMessage((val, {req}) => req.__('validation_field'))
+      .isLength({min: 2, max: 50})
+      .withMessage((val, {req}) => req.__('validation_length', {min_length: 2, max_length: 50})),
     body('email')
       .notEmpty().withMessage((val, {req}) => req.__('validation_field'))
       .isEmail().withMessage((val, {req}) => req.__('validation_value'))

@@ -6,7 +6,8 @@ class ExamplesValidation {
   createExample: RequestHandler[] = [
     body('name')
       .notEmpty().withMessage((val, {req}) => req.__('validation_field'))
-      .isLength({min: 2, max: 50}).withMessage((val, {req}) => req.__('validation_length_short')),
+      .isLength({min: 2, max: 50})
+      .withMessage((val, {req}) => req.__('validation_length', {min_length: 2, max_length: 50})),
     validatorMiddleware
   ];
   getExample: RequestHandler[] = [
@@ -17,7 +18,8 @@ class ExamplesValidation {
     param('id').isMongoId().withMessage((val, {req}) => req.__('validation_value')),
     body('name')
       .notEmpty().withMessage((val, {req}) => req.__('validation_field'))
-      .isLength({min: 2, max: 50}).withMessage((val, {req}) => req.__('validation_length_short')),
+      .isLength({min: 2, max: 50})
+      .withMessage((val, {req}) => req.__('validation_length', {min_length: 2, max_length: 50})),
     validatorMiddleware
   ];
   deleteExample: RequestHandler[] = [

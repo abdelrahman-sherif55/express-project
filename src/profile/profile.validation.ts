@@ -6,7 +6,8 @@ import validatorMiddleware from "../common/middlewares/validator.middleware";
 class ProfileValidation {
   updateProfile: RequestHandler[] = [
     body('name').optional()
-      .isLength({min: 2, max: 50}).withMessage((val, {req}) => req.__('validation_length_short')),
+      .isLength({min: 2, max: 50})
+      .withMessage((val, {req}) => req.__('validation_length', {min_length: 2, max_length: 50})),
     validatorMiddleware
   ];
   createPassword: RequestHandler[] = [
