@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import {Examples} from './examples.interface';
-import {ModelName} from "../common/constants/common.constant";
+import {ModelName} from "../common/constants/models.constant";
 
 const examplesSchema: mongoose.Schema = new mongoose.Schema<Examples>({
   name: {type: String, required: true, trim: true},

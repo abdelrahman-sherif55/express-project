@@ -1,5 +1,5 @@
 import {Users} from "../../users/users.interface";
-import {ImagePath} from "../constants/common.constant";
+import {ImagePath} from "../constants/paths.constant";
 import {Examples} from "../../examples/examples.interface";
 
 class Sanitization {

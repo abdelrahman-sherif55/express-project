@@ -10,7 +10,8 @@ import {uploadSingleFile} from '../common/middlewares/upload.middleware';
 import sanitization from "../common/utils/sanitization.util";
 import ApiErrors from "../common/utils/api-errors.util";
 import {HttpStatusCode} from "../common/enums/status-code.enum";
-import {FolderPath, ModelName} from "../common/constants/common.constant";
+import {FolderPath} from "../common/constants/paths.constant";
+import {ModelName} from "../common/constants/models.constant";
 
 class UserService {
   constructor(private readonly crudService: CrudService<Users>) {
