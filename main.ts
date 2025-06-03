@@ -29,6 +29,7 @@ app.use(ExpressMongoSanitize());
 app.use(helmet({crossOriginResourcePolicy: {policy: 'cross-origin'}}));
 app.use(hpp({whitelist: []}));
 app.use(express.static('uploads'));
+app.set('trust proxy', true);
 dotenv.config();
 
 const port = process.env.PORT;

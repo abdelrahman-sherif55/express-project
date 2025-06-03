@@ -9,6 +9,7 @@
   "validation_password_match": "passwords doesn't match",
   "-----------------------------------------------------------------": "ErrorHandling",
   "session_expired": "session time Expired, please login again..",
+  "rate_limit": "You have been blocked due to too many failed attempts. Please try again later after {{time}} minutes",
   "max_size": "You have reached the maximum allowed space of {{size}} GB",
   "----------------------------------------------------------------": "Authentication",
   "invalid_login": "Invalid Email or Password",

@@ -10,6 +10,8 @@ import sendEmail from "../common/utils/send-email.util";
 import {Users} from "../users/users.interface";
 import tokens from "../common/utils/create-token.util";
 import {HttpStatusCode} from "../common/enums/status-code.enum";
+import {RateLimiterMongo} from "rate-limiter-flexible";
+import {getLimiter} from "../common/utils/rate-limiters.util";
 
 class AuthService {
   signup = asyncHandler(async (req: Request, res: Response): Promise<void> => {
@@ -23,16 +25,23 @@ class AuthService {
   });
   login = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const user: Users | null = await usersSchema.findOne({email: req.body.email});
-    if (!user || !user.password || !(await bcrypt.compare(req.body.password, user.password)))
+    const key = `${user?.email || req.body.email}`;
+    if (!user || !user.password || !(await bcrypt.compare(req.body.password, user.password))) {
+      await this.loginFailures(key, req, next);
       return next(new ApiErrors(`${req.__('invalid_login')}`, HttpStatusCode.BAD_REQUEST));
+    }
     if (!user.active) return next(new ApiErrors(`${req.__('check_active')}`, HttpStatusCode.FORBIDDEN));
     const tokens = this.createTokens(user, res);
     res.status(HttpStatusCode.OK).json({token: tokens.token, refreshToken: tokens.refreshToken});
   });
   adminLogin = asyncHandler(async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     const user: Users | null = await usersSchema.findOne({email: req.body.email, role: {$in: ['admin']}});
-    if (!user || !(await bcrypt.compare(req.body.password, user.password)))
+
+    const key = `${user?.email || req.body.email}`;
+    if (!user || !(await bcrypt.compare(req.body.password, user.password))) {
+      await this.loginFailures(key, req, next);
       return next(new ApiErrors(`${req.__('invalid_login')}`, HttpStatusCode.BAD_REQUEST));
+    }
     const tokens = this.createTokens(user, res);
     res.status(HttpStatusCode.OK).json({token: tokens.token, refreshToken: tokens.refreshToken});
   });
@@ -186,6 +195,17 @@ class AuthService {
     const decodedToken: any = Jwt.verify(resetToken, process.env.JWT_RESET_SECRET_KEY!);
     return decodedToken;
   };
+
+  async loginFailures(key: string, req: Request, next: NextFunction) {
+    const limiter: RateLimiterMongo = getLimiter('login');
+    try {
+      await limiter.consume(key);
+    } catch (rejRes: any) {
+      if (typeof rejRes === 'object' && rejRes?.remainingPoints === 0)
+        return next(new ApiErrors(`${req.__('rate_limit', {time: (Math.round(rejRes.msBeforeNext / 1000 / 60)).toString()})}`, HttpStatusCode.TOO_MANY_REQUESTS))
+      return next(new ApiErrors(`${req.__('invalid_login')}`, HttpStatusCode.BAD_REQUEST));
+    }
+  }
 
   clearCookies = (req: Request, res: Response, next: NextFunction) => {
     res.clearCookie('token', {
