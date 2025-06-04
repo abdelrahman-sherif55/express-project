@@ -36,7 +36,7 @@ const port = process.env.PORT;
 let server: Server;
 i18n.configure({
   locales: ['en', 'ar'],
-  defaultLocale: 'en',
+  defaultLocale: process.env.DEFAULT_LOCALE || 'en',
   queryParameter: 'lang',
   autoReload: true,
   updateFiles: false,

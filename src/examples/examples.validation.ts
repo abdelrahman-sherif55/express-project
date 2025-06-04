@@ -8,7 +8,12 @@ class ExamplesValidation {
       .notEmpty()
       .withMessage((val, {req}) => req.__('validation_field', {field_en: 'name', field_ar: 'الاسم'}))
       .isLength({min: 2, max: 50})
-      .withMessage((val, {req}) => req.__('validation_length', {min_length: 2, max_length: 50})),
+      .withMessage((val, {req}) => req.__('validation_length', {
+        min_length: 2,
+        max_length: 50,
+        field_en: 'name',
+        field_ar: 'الاسم'
+      })),
     validatorMiddleware
   ];
   getExample: RequestHandler[] = [
@@ -25,7 +30,12 @@ class ExamplesValidation {
       .notEmpty()
       .withMessage((val, {req}) => req.__('validation_field', {field_en: 'name', field_ar: 'الاسم'}))
       .isLength({min: 2, max: 50})
-      .withMessage((val, {req}) => req.__('validation_length', {min_length: 2, max_length: 50})),
+      .withMessage((val, {req}) => req.__('validation_length', {
+        min_length: 2,
+        max_length: 50,
+        field_en: 'name',
+        field_ar: 'الاسم'
+      })),
     validatorMiddleware
   ];
   deleteExample: RequestHandler[] = [

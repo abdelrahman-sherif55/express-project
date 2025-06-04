@@ -4,6 +4,7 @@ declare namespace NodeJS {
     DB: string;
     BASE_URL: string;
     NODE_ENV: 'development' | 'production';
+    DEFAULT_LOCALE: string;
     JWT_SECRET_KEY: string;
     JWT_RESET_SECRET_KEY: string;
     JWT_REFRESH_SECRET_KEY: string;

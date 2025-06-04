@@ -4,7 +4,7 @@
   "validation_field": "{{field_ar}} مطلوب",
   "validation_value": "بيانات غير صحيحة",
   "validation_email_check": "البريد الإلكتروني موجود بالفعل",
-  "validation_length": "الطول بتراوح بين {{min_length}}, {{max_length}} حرف",
+  "validation_length": "طول {{field_ar}} بتراوح بين {{min_length}}, {{max_length}} حرف",
   "validation_length_password": "كلمة المرور من 6 إلى 20 رقم",
   "validation_password_match": "كلمة المرور غير متطابقة",
   "-----------------------------------------------------------------": "ErrorHandling",

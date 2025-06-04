@@ -8,7 +8,12 @@ class ProfileValidation {
     body('name')
       .optional()
       .isLength({min: 2, max: 50})
-      .withMessage((val, {req}) => req.__('validation_length', {min_length: 2, max_length: 50})),
+      .withMessage((val, {req}) => req.__('validation_length', {
+        min_length: 2,
+        max_length: 50,
+        field_en: 'name',
+        field_ar: 'الاسم'
+      })),
     validatorMiddleware
   ];
   createPassword: RequestHandler[] = [
