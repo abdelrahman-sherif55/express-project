@@ -5,25 +5,33 @@ import validatorMiddleware from "../common/middlewares/validator.middleware";
 class ExamplesValidation {
   createExample: RequestHandler[] = [
     body('name')
-      .notEmpty().withMessage((val, {req}) => req.__('validation_field'))
+      .notEmpty()
+      .withMessage((val, {req}) => req.__('validation_field', {field_en: 'name', field_ar: 'الاسم'}))
       .isLength({min: 2, max: 50})
       .withMessage((val, {req}) => req.__('validation_length', {min_length: 2, max_length: 50})),
     validatorMiddleware
   ];
   getExample: RequestHandler[] = [
-    param('id').isMongoId().withMessage((val, {req}) => req.__('validation_value')),
+    param('id')
+      .isMongoId()
+      .withMessage((val, {req}) => req.__('validation_value')),
     validatorMiddleware
   ];
   updateExample: RequestHandler[] = [
-    param('id').isMongoId().withMessage((val, {req}) => req.__('validation_value')),
+    param('id')
+      .isMongoId()
+      .withMessage((val, {req}) => req.__('validation_value')),
     body('name')
-      .notEmpty().withMessage((val, {req}) => req.__('validation_field'))
+      .notEmpty()
+      .withMessage((val, {req}) => req.__('validation_field', {field_en: 'name', field_ar: 'الاسم'}))
       .isLength({min: 2, max: 50})
       .withMessage((val, {req}) => req.__('validation_length', {min_length: 2, max_length: 50})),
     validatorMiddleware
   ];
   deleteExample: RequestHandler[] = [
-    param('id').isMongoId().withMessage((val, {req}) => req.__('validation_value')),
+    param('id')
+      .isMongoId()
+      .withMessage((val, {req}) => req.__('validation_value')),
     validatorMiddleware
   ];
 }

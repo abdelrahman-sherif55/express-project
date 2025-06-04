@@ -1,7 +1,7 @@
 {
   "--------------------------------------------------------------------": "Validation",
   "not_found": "Not Valid Information. try again",
-  "validation_field": "Field Required",
+  "validation_field": "{{field_en}} Required",
   "validation_value": "Invalid Value",
   "validation_email_check": "Email is Already Exist",
   "validation_length": "length is between {{min_length}}, {{max_length}}",

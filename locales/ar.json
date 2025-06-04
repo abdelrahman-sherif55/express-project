@@ -1,7 +1,7 @@
 {
   "--------------------------------------------------------------------": "Validation",
   "not_found": "بيانات غير صحيحة. حاول مرة أخرى",
-  "validation_field": "الحقل مطلوب",
+  "validation_field": "{{field_ar}} مطلوب",
   "validation_value": "بيانات غير صحيحة",
   "validation_email_check": "البريد الإلكتروني موجود بالفعل",
   "validation_length": "الطول بتراوح بين {{min_length}}, {{max_length}} حرف",
