@@ -12,6 +12,7 @@ import {ModelName} from "../common/constants/models.constant";
 import {HttpStatusCode} from "../common/enums/status-code.enum";
 import ApiErrors from "../common/utils/api-errors.util";
 import sanitization from "../common/utils/sanitization.util";
+import {I18nContext} from "../common/utils/i18n-context.util";
 
 class ExamplesService {
   constructor(private readonly crudService: CrudService<Examples>) {
@@ -19,22 +20,25 @@ class ExamplesService {
 
   getExamples = asyncHandler(async (req: Request, res: Response) => {
     const data = await this.crudService.getAll(req);
+    const localizedData = examplesSchema.schema.methods.toObjectLocalizedOnly(data.data, I18nContext(req));
     res.status(HttpStatusCode.OK).json({
       ...data,
-      data: data.data.map((example: Examples) => sanitization.Example(example))
+      data: localizedData.map((example: Examples) => sanitization.Example(example))
     });
   });
   getExamplesList = asyncHandler(async (req: Request, res: Response) => {
     const data = await this.crudService.getAllList(req);
+    const localizedData = examplesSchema.schema.methods.toObjectLocalizedOnly(data.data, I18nContext(req));
     res.status(HttpStatusCode.OK).json({
       ...data,
-      data: data.data.map((example: Examples) => sanitization.Example(example))
+      data: localizedData.map((example: Examples) => sanitization.Example(example))
     });
   });
   getExample = asyncHandler(async (req: Request, res: Response, next: NextFunction) => {
     const example: Examples | null = await this.crudService.getOne(req);
     if (!example) return next(new ApiErrors(`${req.__('not_found')}`, HttpStatusCode.NOT_FOUND));
-    res.status(HttpStatusCode.OK).json({data: sanitization.Example(example)});
+    const localizedExample = examplesSchema.schema.methods.toObjectLocalizedOnly(example, I18nContext(req));
+    res.status(HttpStatusCode.OK).json({data: sanitization.Example(localizedExample)});
   });
   createExample = asyncHandler(async (req: Request, res: Response) => {
     const example: Examples = await this.crudService.createOne(req);

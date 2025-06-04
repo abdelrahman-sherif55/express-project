@@ -9,7 +9,12 @@ class AuthValidation {
       .notEmpty()
       .withMessage((val, {req}) => req.__('validation_field', {field_en: 'name', field_ar: 'الاسم'}))
       .isLength({min: 2, max: 50})
-      .withMessage((val, {req}) => req.__('validation_length', {min_length: 2, max_length: 50})),
+      .withMessage((val, {req}) => req.__('validation_length', {
+        min_length: 2,
+        max_length: 50,
+        field_en: 'name',
+        field_ar: 'الاسم'
+      })),
     body('email')
       .notEmpty()
       .withMessage((val, {req}) => req.__('validation_field', {field_en: 'email', field_ar: 'البريد الإلكتروني'}))
